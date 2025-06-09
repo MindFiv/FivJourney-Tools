@@ -1,0 +1,32 @@
+[bandit]
+# Bandit 安全检查配置
+
+# 排除的文件和目录
+exclude_dirs = [
+    "tests",
+    "migrations", 
+    "alembic",
+    ".venv",
+    "venv",
+    "build",
+    "dist"
+]
+
+# 跳过的测试ID
+skips = [
+    "B101",  # assert_used - 在测试中使用assert是正常的
+    "B601",  # paramiko_calls - 如果使用paramiko
+    "B602",  # subprocess_popen_with_shell_equals_true
+]
+
+# 置信度级别: LOW, MEDIUM, HIGH
+confidence = "MEDIUM"
+
+# 严重性级别: LOW, MEDIUM, HIGH  
+severity = "MEDIUM"
+
+# 输出格式: csv, json, txt, xml, yaml
+format = "txt"
+
+# 详细输出
+verbose = true 

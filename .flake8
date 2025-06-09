@@ -1,0 +1,32 @@
+[flake8]
+max-line-length = 120
+extend-ignore = 
+    # E203: whitespace before ':'  (与black冲突)
+    E203,
+    # W503: line break before binary operator (与black冲突)
+    W503,
+    # E501: line too long (由black处理)
+    E501,
+    # F401: imported but unused (在__init__.py中常见)
+    F401,
+exclude = 
+    .git,
+    __pycache__,
+    .venv,
+    venv,
+    .env,
+    migrations,
+    alembic,
+    build,
+    dist,
+    *.egg-info
+per-file-ignores =
+    # __init__.py 文件可以有未使用的导入
+    __init__.py:F401,F403
+    # 配置文件可以有较长行
+    */config.py:E501
+    # 测试文件允许一些规则放宽
+    tests/*:S101,S105,S106
+max-complexity = 12
+import-order-style = google
+docstring-convention = google 
