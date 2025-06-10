@@ -1,4 +1,4 @@
-# 旅游全程追踪系统
+# FIVC Journey
 
 > 🎯 一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统
 
@@ -109,6 +109,11 @@ uv run uvicorn main:app --reload
 1. [开发指南](./docs/development.md) - 开发环境配置
 2. [编码规范](./docs/coding-standards.md) - 代码风格指南
 3. [贡献指南](./docs/contributing.md) - 贡献流程说明
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 📞 支持
 

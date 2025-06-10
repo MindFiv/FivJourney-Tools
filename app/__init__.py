@@ -1,2 +1,2 @@
-# 旅游全程追踪系统
+# FIVC Journey
 __version__ = "1.0.0"

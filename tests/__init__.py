@@ -1,5 +1,5 @@
 """
-旅游全程追踪系统测试套件
+FIVC Journey 测试套件
 
 包含以下测试模块：
 - test_auth.py: 认证相关测试
@@ -10,4 +10,6 @@
 - test_expenses.py: 费用管理测试
 - test_models.py: 数据库模型测试
 - conftest.py: 测试配置和共享fixtures
+
+作者: Charlie ZHANG (sunnypig2002@gmail.com)
 """

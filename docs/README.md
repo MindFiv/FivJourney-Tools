@@ -1,6 +1,11 @@
-# 旅游全程追踪系统
+# FIVC Journey
 
 一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统，为用户提供旅游行前、行中、行后的全过程追踪和帮助。
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 🎯 项目愿景
 

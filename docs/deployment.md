@@ -1,6 +1,11 @@
 # 部署指南
 
-本文档提供旅游全程追踪系统的部署指南，包括本地开发环境、Docker部署和生产环境部署。
+本文档提供 FIVC Journey 旅游全程追踪系统的部署指南，包括本地开发环境、Docker部署和生产环境部署。
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 🚀 部署选项
 

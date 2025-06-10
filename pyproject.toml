@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "travel-tracker"
+name = "fivc-journey"
 version = "1.0.0"
-description = "旅游全程追踪系统 - 为用户提供旅游行前、行中、行后的全过程追踪和帮助"
+description = "FIVC Journey - 为用户提供旅游行前、行中、行后的全过程追踪和帮助"
 authors = [
-    {name = "Travel Tracker Team", email = "team@travel-tracker.com"},
+    {name = "Charlie ZHANG", email = "sunnypig2002@gmail.com"},
 ]
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
-keywords = ["travel", "tracking", "fastapi", "tourism"]
+keywords = ["travel", "tracking", "fastapi", "tourism", "fivc", "journey"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -83,13 +83,13 @@ lint = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/your-username/travel-tracker"
-Documentation = "https://github.com/your-username/travel-tracker#readme"
-Repository = "https://github.com/your-username/travel-tracker.git"
-Issues = "https://github.com/your-username/travel-tracker/issues"
+Homepage = "https://github.com/charliezhang/fivc-journey"
+Documentation = "https://github.com/charliezhang/fivc-journey#readme"
+Repository = "https://github.com/charliezhang/fivc-journey.git"
+Issues = "https://github.com/charliezhang/fivc-journey/issues"
 
 [project.scripts]
-travel-tracker = "main:app"
+fivc-journey = "main:app"
 
 [tool.black]
 line-length = 120

@@ -1,6 +1,11 @@
 # API 接口文档
 
-本文档详细介绍了旅游全程追踪系统的所有API接口。
+本文档详细介绍了 FIVC Journey 旅游全程追踪系统的所有API接口。
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 🌐 基础信息
 

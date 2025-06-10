@@ -1,6 +1,11 @@
 # 快速开始指南
 
-本指南将帮助你快速搭建和运行旅游全程追踪系统。
+本指南将帮助你快速搭建和运行 FIVC Journey 旅游全程追踪系统。
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 📋 环境要求
 

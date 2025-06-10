@@ -1,6 +1,11 @@
-# 旅游全程追踪系统文档
+# FIVC Journey 文档
 
-欢迎使用旅游全程追踪系统！这是一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统。
+欢迎使用 FIVC Journey！这是一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统。
+
+## 👨‍💻 作者
+
+**Charlie ZHANG**  
+📧 Email: sunnypig2002@gmail.com
 
 ## 📚 文档导航
 
