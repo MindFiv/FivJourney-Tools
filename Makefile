@@ -85,9 +85,9 @@ format-check:
 lint:
 	@echo "🔍 正在进行代码检查..."
 	@echo "📋 运行 flake8..."
-	uv run flake8 app/ main.py
+	uv run flake8 app/ main.py tests/
 	@echo "🔍 运行 mypy..."
-	uv run mypy app/ main.py
+	uv run mypy app/ main.py tests/
 	@echo "✅ 代码检查完成"
 
 # 完整的代码质量检查 (格式化 + 检查)
@@ -110,7 +110,8 @@ format-advanced:
 	@echo "🗑️  删除未使用的导入..."
 	uv run autoflake --remove-all-unused-imports --recursive --in-place app/ main.py tests/
 	@echo "⬆️  升级Python语法..."
-	uv run pyupgrade --py310-plus app/**/*.py main.py tests/**/*.py || true
+	find app/ tests/ -name "*.py" -exec uv run pyupgrade --py310-plus {} \; || true
+	uv run pyupgrade --py310-plus main.py || true
 	@echo "🔧 格式化代码..."
 	$(MAKE) format
 	@echo "✅ 高级代码清理完成"

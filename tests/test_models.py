@@ -61,7 +61,7 @@ class TestUserModel:
         with pytest.raises(IntegrityError):
             await test_db.commit()
 
-        await test_db.rollback()
+        await test_db.rollback()  # type: ignore[unreachable]
 
         # 尝试创建邮箱重复的用户
         user3_data = sample_user_data.copy()

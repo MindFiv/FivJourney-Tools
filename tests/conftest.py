@@ -1,5 +1,5 @@
 import asyncio
-from typing import AsyncGenerator
+from typing import AsyncGenerator, Generator
 
 import pytest
 import pytest_asyncio
@@ -41,7 +41,7 @@ async def test_db() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture
-def client(test_db: AsyncSession) -> TestClient:
+def client(test_db: AsyncSession) -> Generator[TestClient, None, None]:
     """创建测试客户端"""
 
     def override_get_db():
