@@ -36,10 +36,7 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
     return encoded_jwt
 
 
-async def get_current_user(
-    token: str = Depends(oauth2_scheme),
-    db: AsyncSession = Depends(get_db)
-) -> User:
+async def get_current_user(token: str = Depends(oauth2_scheme), db: AsyncSession = Depends(get_db)) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="无法验证凭据",
@@ -56,6 +53,7 @@ async def get_current_user(
         raise credentials_exception
 
     from sqlalchemy import select
+
     result = await db.execute(select(User).filter(User.username == token_data.username))
     user = result.scalar_one_or_none()
 

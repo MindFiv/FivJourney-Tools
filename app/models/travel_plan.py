@@ -1,18 +1,9 @@
-import enum
-
 from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
-
-
-class TravelStatus(enum.Enum):
-    PLANNING = "planning"  # 计划中
-    CONFIRMED = "confirmed"  # 已确认
-    IN_PROGRESS = "in_progress"  # 进行中
-    COMPLETED = "completed"  # 已完成
-    CANCELLED = "cancelled"  # 已取消
+from app.models.enums import TravelStatus
 
 
 class TravelPlan(Base):

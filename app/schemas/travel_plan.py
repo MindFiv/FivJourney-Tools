@@ -1,17 +1,10 @@
-import enum
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel, validator
+from pydantic import BaseModel, ConfigDict, field_validator
 
-
-class TravelStatus(enum.Enum):
-    PLANNING = "planning"  # 计划中
-    CONFIRMED = "confirmed"  # 已确认
-    IN_PROGRESS = "in_progress"  # 进行中
-    COMPLETED = "completed"  # 已完成
-    CANCELLED = "cancelled"  # 已取消
+from app.models.enums import TravelStatus
 
 
 class TravelPlanBase(BaseModel):
@@ -23,9 +16,33 @@ class TravelPlanBase(BaseModel):
     budget: Optional[Decimal] = None
     tags: Optional[str] = None
 
-    @validator("end_date")
-    def validate_dates(cls, v, values):
-        if "start_date" in values and v < values["start_date"]:
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if not v or not v.strip():
+            raise ValueError("标题不能为空")
+        if len(v.strip()) > 200:
+            raise ValueError("标题长度不能超过200个字符")
+        return v.strip()
+
+    @field_validator("destination")
+    @classmethod
+    def validate_destination(cls, v):
+        if not v or not v.strip():
+            raise ValueError("目的地不能为空")
+        return v.strip()
+
+    @field_validator("budget")
+    @classmethod
+    def validate_budget(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("预算不能为负数")
+        return v
+
+    @field_validator("end_date")
+    @classmethod
+    def validate_dates(cls, v, info):
+        if info.data and "start_date" in info.data and v < info.data["start_date"]:
             raise ValueError("结束日期不能早于开始日期")
         return v
 
@@ -45,6 +62,29 @@ class TravelPlanUpdate(BaseModel):
     cover_image: Optional[str] = None
     tags: Optional[str] = None
 
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("标题不能为空")
+        if v is not None and len(v.strip()) > 200:
+            raise ValueError("标题长度不能超过200个字符")
+        return v.strip() if v else v
+
+    @field_validator("destination")
+    @classmethod
+    def validate_destination(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("目的地不能为空")
+        return v.strip() if v else v
+
+    @field_validator("budget")
+    @classmethod
+    def validate_budget(cls, v):
+        if v is not None and v < 0:
+            raise ValueError("预算不能为负数")
+        return v
+
 
 class TravelPlanResponse(TravelPlanBase):
     id: int
@@ -54,5 +94,4 @@ class TravelPlanResponse(TravelPlanBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)

@@ -1,22 +1,9 @@
-import enum
-
 from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
-
-
-class ExpenseCategory(enum.Enum):
-    TRANSPORTATION = "transportation"  # 交通费
-    ACCOMMODATION = "accommodation"  # 住宿费
-    FOOD = "food"  # 餐饮费
-    SIGHTSEEING = "sightseeing"  # 门票费
-    SHOPPING = "shopping"  # 购物费
-    ENTERTAINMENT = "entertainment"  # 娱乐费
-    INSURANCE = "insurance"  # 保险费
-    VISA = "visa"  # 签证费
-    OTHER = "other"  # 其他费用
+from app.models.enums import ExpenseCategory
 
 
 class Expense(Base):
@@ -25,13 +12,13 @@ class Expense(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String(200), nullable=False)
     description = Column(Text)
-    amount = Column(Numeric(10, 2), nullable=False)
+    amount = Column(Numeric(12, 2), nullable=False)  # 金额
     currency = Column(String(3), default="CNY")  # 货币代码
     category = Column(Enum(ExpenseCategory), nullable=False)  # type: ignore
-    expense_date = Column(DateTime, nullable=False)
-    location = Column(String(200))
+    expense_date = Column(DateTime(timezone=True), nullable=False)  # 消费日期
+    location = Column(String(200))  # 消费地点
     receipt_image = Column(String(200))  # 收据图片
-    notes = Column(Text)
+    notes = Column(Text)  # 备注
 
     # 外键关联
     user_id = Column(Integer, ForeignKey("users.id"), nullable=False)

@@ -21,7 +21,7 @@ async def create_expense(
     db: AsyncSession = Depends(get_db),
 ):
     """创建新的费用记录"""
-    db_expense = Expense(**expense_data.dict(), user_id=current_user.id)
+    db_expense = Expense(**expense_data.model_dump(), user_id=current_user.id)
 
     db.add(db_expense)
     await db.commit()
@@ -64,9 +64,7 @@ async def get_expense_statistics(
 ):
     """获取费用统计信息"""
     query = select(
-        Expense.category,
-        func.sum(Expense.amount).label("total_amount"),
-        func.count(Expense.id).label("count")
+        Expense.category, func.sum(Expense.amount).label("total_amount"), func.count(Expense.id).label("count")
     ).where(Expense.user_id == current_user.id)
 
     if travel_plan_id is not None:
@@ -121,7 +119,7 @@ async def update_expense(
     if not expense:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在")
 
-    update_data = expense_update.dict(exclude_unset=True)
+    update_data = expense_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(expense, field, value)
 

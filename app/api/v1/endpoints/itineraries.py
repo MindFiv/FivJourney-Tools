@@ -1,11 +1,13 @@
-from typing import List
+from typing import List, Optional
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import and_, select
+from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import and_, asc
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.future import select
 
+from app.api.v1.dependencies import get_current_active_user
 from app.core.database import get_db
-from app.core.security import get_current_active_user
+from app.models.enums import ActivityType
 from app.models.itinerary import Itinerary
 from app.models.travel_plan import TravelPlan
 from app.models.user import User
@@ -14,25 +16,25 @@ from app.schemas.itinerary import ItineraryCreate, ItineraryResponse, ItineraryU
 router = APIRouter()
 
 
-@router.post("/", response_model=ItineraryResponse, summary="创建行程安排")
+@router.post("/", response_model=ItineraryResponse, summary="创建行程")
 async def create_itinerary(
     itinerary_data: ItineraryCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     """创建新的行程安排"""
-    # 验证旅行计划是否属于当前用户
+    # 验证旅行计划存在且属于当前用户
     result = await db.execute(
         select(TravelPlan).where(
             and_(TravelPlan.id == itinerary_data.travel_plan_id, TravelPlan.owner_id == current_user.id)
         )
     )
     travel_plan = result.scalar_one_or_none()
-
     if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在或无权限访问")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在")
 
-    db_itinerary = Itinerary(**itinerary_data.dict())
+    # 创建行程
+    db_itinerary = Itinerary(**itinerary_data.model_dump())
 
     db.add(db_itinerary)
     await db.commit()
@@ -41,25 +43,57 @@ async def create_itinerary(
     return db_itinerary
 
 
-@router.get("/travel-plan/{plan_id}", response_model=List[ItineraryResponse], summary="获取旅行计划的行程列表")
-async def get_itineraries_by_plan(
-    plan_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+@router.get("/travel-plan/{travel_plan_id}", response_model=List[ItineraryResponse], summary="获取行程列表（兼容路径）")
+async def get_itineraries_by_plan_alt(
+    travel_plan_id: int,
+    skip: int = Query(0, ge=0, description="跳过的记录数"),
+    limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
+    day_number: Optional[int] = Query(None, description="筛选特定天数"),
+    activity_type: Optional[str] = Query(None, description="活动类型"),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
-    """获取指定旅行计划的行程安排列表"""
-    # 验证旅行计划是否属于当前用户
+    """获取指定旅行计划的行程列表（兼容路径）"""
+    return await get_itineraries_by_plan(travel_plan_id, skip, limit, day_number, activity_type, current_user, db)
+
+
+@router.get(
+    "/travel-plans/{travel_plan_id}/itineraries/", response_model=List[ItineraryResponse], summary="获取行程列表"
+)
+async def get_itineraries_by_plan(
+    travel_plan_id: int,
+    skip: int = Query(0, ge=0, description="跳过的记录数"),
+    limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
+    day_number: Optional[int] = Query(None, description="筛选特定天数"),
+    activity_type: Optional[str] = Query(None, description="活动类型"),
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+):
+    """获取指定旅行计划的行程列表"""
+    # 验证旅行计划存在且属于当前用户
     result = await db.execute(
-        select(TravelPlan).where(and_(TravelPlan.id == plan_id, TravelPlan.owner_id == current_user.id))
+        select(TravelPlan).where(and_(TravelPlan.id == travel_plan_id, TravelPlan.owner_id == current_user.id))
     )
     travel_plan = result.scalar_one_or_none()
-
     if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在或无权限访问")
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在")
 
-    result = await db.execute(
-        select(Itinerary)
-        .where(Itinerary.travel_plan_id == plan_id)
-        .order_by(Itinerary.day_number, Itinerary.start_time)
-    )
+    query = select(Itinerary).where(Itinerary.travel_plan_id == travel_plan_id)
+
+    if day_number is not None:
+        query = query.where(Itinerary.day_number == day_number)
+
+    if activity_type:
+        try:
+            activity_enum = ActivityType(activity_type)
+            query = query.where(Itinerary.activity_type == activity_enum)
+        except ValueError:
+            # 无效的活动类型，返回空结果
+            return []
+
+    query = query.order_by(asc(Itinerary.day_number), asc(Itinerary.start_time)).offset(skip).limit(limit)
+
+    result = await db.execute(query)
     itineraries = result.scalars().all()
 
     return itineraries
@@ -69,53 +103,38 @@ async def get_itineraries_by_plan(
 async def get_itinerary(
     itinerary_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
-    """获取指定行程的详情"""
-    result = await db.execute(select(Itinerary).where(Itinerary.id == itinerary_id))
+    """获取行程详情"""
+    result = await db.execute(
+        select(Itinerary)
+        .join(TravelPlan)
+        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+    )
     itinerary = result.scalar_one_or_none()
-
     if not itinerary:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
-
-    # 验证权限
-    result = await db.execute(
-        select(TravelPlan).where(
-            and_(TravelPlan.id == itinerary.travel_plan_id, TravelPlan.owner_id == current_user.id)
-        )
-    )
-    travel_plan = result.scalar_one_or_none()
-
-    if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限访问此行程")
 
     return itinerary
 
 
-@router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程安排")
+@router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程")
 async def update_itinerary(
     itinerary_id: int,
     itinerary_update: ItineraryUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """更新行程安排"""
-    result = await db.execute(select(Itinerary).where(Itinerary.id == itinerary_id))
+    """更新行程信息"""
+    result = await db.execute(
+        select(Itinerary)
+        .join(TravelPlan)
+        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+    )
     itinerary = result.scalar_one_or_none()
-
     if not itinerary:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
 
-    # 验证权限
-    result = await db.execute(
-        select(TravelPlan).where(
-            and_(TravelPlan.id == itinerary.travel_plan_id, TravelPlan.owner_id == current_user.id)
-        )
-    )
-    travel_plan = result.scalar_one_or_none()
-
-    if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限修改此行程")
-
-    update_data = itinerary_update.dict(exclude_unset=True)
+    # 更新字段
+    update_data = itinerary_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
         setattr(itinerary, field, value)
 
@@ -125,29 +144,21 @@ async def update_itinerary(
     return itinerary
 
 
-@router.delete("/{itinerary_id}", summary="删除行程安排")
+@router.delete("/{itinerary_id}", summary="删除行程")
 async def delete_itinerary(
     itinerary_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
-    """删除行程安排"""
-    result = await db.execute(select(Itinerary).where(Itinerary.id == itinerary_id))
+    """删除行程"""
+    result = await db.execute(
+        select(Itinerary)
+        .join(TravelPlan)
+        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+    )
     itinerary = result.scalar_one_or_none()
-
     if not itinerary:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
-
-    # 验证权限
-    result = await db.execute(
-        select(TravelPlan).where(
-            and_(TravelPlan.id == itinerary.travel_plan_id, TravelPlan.owner_id == current_user.id)
-        )
-    )
-    travel_plan = result.scalar_one_or_none()
-
-    if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="无权限删除此行程")
 
     await db.delete(itinerary)
     await db.commit()
 
-    return {"message": "行程安排已删除"}
+    return {"message": "行程已删除"}

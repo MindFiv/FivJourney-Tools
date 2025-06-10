@@ -1,20 +1,11 @@
-import enum
+from typing import Optional
 
-from sqlalchemy import Column, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
 from app.core.database import Base
-
-
-class ActivityType(enum.Enum):
-    TRANSPORTATION = "transportation"  # 交通
-    ACCOMMODATION = "accommodation"  # 住宿
-    SIGHTSEEING = "sightseeing"  # 观光
-    DINING = "dining"  # 用餐
-    SHOPPING = "shopping"  # 购物
-    ENTERTAINMENT = "entertainment"  # 娱乐
-    OTHER = "other"  # 其他
+from app.models.enums import ActivityType
 
 
 class Itinerary(Base):
@@ -22,18 +13,22 @@ class Itinerary(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     day_number = Column(Integer, nullable=False)  # 第几天
-    activity_type = Column(Enum(ActivityType), nullable=False)  # type: ignore
-    title = Column(String(200), nullable=False)
-    description = Column(Text)
-    location = Column(String(200))
-    address = Column(String(300))
+    date = Column(Date, nullable=False)  # 日期
+    location = Column(String(200), nullable=False)  # 地点
+    activity = Column(String(200), nullable=False)  # 活动
+    activity_type = Column(Enum(ActivityType), nullable=True)  # type: ignore  # 活动类型（可选）
+    start_time = Column(Time)  # 开始时间
+    end_time = Column(Time)  # 结束时间
+    notes = Column(Text)  # 备注
+
+    # 新字段（保持向前兼容）
+    title = Column(String(200))  # 可选标题
+    description = Column(Text)  # 描述
+    address = Column(String(500))  # 详细地址
     latitude = Column(Numeric(10, 8))  # 纬度
     longitude = Column(Numeric(11, 8))  # 经度
-    start_time = Column(DateTime)
-    end_time = Column(DateTime)
-    estimated_cost = Column(Numeric(10, 2))
+    estimated_cost = Column(Numeric(12, 2))  # 预估费用
     booking_reference = Column(String(100))  # 预订参考号
-    notes = Column(Text)  # 备注
 
     # 外键关联
     travel_plan_id = Column(Integer, ForeignKey("travel_plans.id"), nullable=False)

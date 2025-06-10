@@ -2,7 +2,7 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator
 
 
 class TravelLogBase(BaseModel):
@@ -16,6 +16,29 @@ class TravelLogBase(BaseModel):
     mood: Optional[str] = None
     tags: Optional[str] = None
     is_public: str = "private"
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if not v or not v.strip():
+            raise ValueError("标题不能为空")
+        if len(v.strip()) > 200:
+            raise ValueError("标题长度不能超过200个字符")
+        return v.strip()
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v):
+        if not v or not v.strip():
+            raise ValueError("内容不能为空")
+        return v.strip()
+
+    @field_validator("is_public")
+    @classmethod
+    def validate_privacy(cls, v):
+        if v not in ["public", "private", "friends"]:
+            raise ValueError("隐私级别必须是 public, private 或 friends")
+        return v
 
 
 class TravelLogCreate(TravelLogBase):
@@ -36,6 +59,29 @@ class TravelLogUpdate(BaseModel):
     tags: Optional[str] = None
     is_public: Optional[str] = None
 
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("标题不能为空")
+        if v is not None and len(v.strip()) > 200:
+            raise ValueError("标题长度不能超过200个字符")
+        return v.strip() if v else v
+
+    @field_validator("content")
+    @classmethod
+    def validate_content(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("内容不能为空")
+        return v.strip() if v else v
+
+    @field_validator("is_public")
+    @classmethod
+    def validate_privacy(cls, v):
+        if v is not None and v not in ["public", "private", "friends"]:
+            raise ValueError("隐私级别必须是 public, private 或 friends")
+        return v
+
 
 class TravelLogResponse(TravelLogBase):
     id: int
@@ -45,5 +91,4 @@ class TravelLogResponse(TravelLogBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

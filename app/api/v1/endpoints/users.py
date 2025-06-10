@@ -21,9 +21,15 @@ async def update_current_user(
     user_update: UserUpdate, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """更新当前用户信息"""
-    update_data = user_update.dict(exclude_unset=True)
+    update_data = user_update.model_dump(exclude_unset=True)
 
-    for field, value in update_data.items():
+    # 定义只读字段，防止被更新
+    readonly_fields = {"id", "username", "email", "created_at", "updated_at", "is_active", "is_verified"}
+
+    # 过滤掉只读字段
+    filtered_data = {k: v for k, v in update_data.items() if k not in readonly_fields}
+
+    for field, value in filtered_data.items():
         setattr(current_user, field, value)
 
     await db.commit()

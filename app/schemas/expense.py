@@ -1,21 +1,10 @@
-import enum
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, field_validator
 
-
-class ExpenseCategory(enum.Enum):
-    TRANSPORTATION = "transportation"  # 交通费
-    ACCOMMODATION = "accommodation"  # 住宿费
-    FOOD = "food"  # 餐饮费
-    SIGHTSEEING = "sightseeing"  # 门票费
-    SHOPPING = "shopping"  # 购物费
-    ENTERTAINMENT = "entertainment"  # 娱乐费
-    INSURANCE = "insurance"  # 保险费
-    VISA = "visa"  # 签证费
-    OTHER = "other"  # 其他费用
+from app.models.enums import ExpenseCategory
 
 
 class ExpenseBase(BaseModel):
@@ -27,6 +16,20 @@ class ExpenseBase(BaseModel):
     expense_date: datetime
     location: Optional[str] = None
     notes: Optional[str] = None
+
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v <= 0:
+            raise ValueError("金额必须大于0")
+        return v
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if not v or not v.strip():
+            raise ValueError("标题不能为空")
+        return v.strip()
 
 
 class ExpenseCreate(ExpenseBase):
@@ -44,6 +47,20 @@ class ExpenseUpdate(BaseModel):
     receipt_image: Optional[str] = None
     notes: Optional[str] = None
 
+    @field_validator("amount")
+    @classmethod
+    def validate_amount(cls, v):
+        if v is not None and v <= 0:
+            raise ValueError("金额必须大于0")
+        return v
+
+    @field_validator("title")
+    @classmethod
+    def validate_title(cls, v):
+        if v is not None and (not v or not v.strip()):
+            raise ValueError("标题不能为空")
+        return v.strip() if v else v
+
 
 class ExpenseResponse(ExpenseBase):
     id: int
@@ -53,5 +70,4 @@ class ExpenseResponse(ExpenseBase):
     created_at: datetime
     updated_at: datetime
 
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True, use_enum_values=True)
