@@ -3,8 +3,7 @@ from fastapi import status
 from fastapi.testclient import TestClient
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.travel_plan import TravelPlan, TravelStatus
-from app.models.user import User
+from app.models.travel_plan import TravelPlan
 
 
 class TestTravelPlanCreation:
@@ -77,7 +76,7 @@ class TestTravelPlanQuery:
 
         # 验证包含测试旅行计划
         plan_ids = [plan["id"] for plan in data]
-        assert test_travel_plan.id in plan_ids
+        assert str(test_travel_plan.id) in plan_ids
 
     def test_get_travel_plan_by_id_success(self, client: TestClient, auth_headers: dict, test_travel_plan: TravelPlan):
         """测试通过ID获取旅行计划成功"""
@@ -85,13 +84,16 @@ class TestTravelPlanQuery:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_travel_plan.id
+        assert data["id"] == str(test_travel_plan.id)
         assert data["title"] == test_travel_plan.title
         assert data["destination"] == test_travel_plan.destination
 
     def test_get_travel_plan_by_id_not_found(self, client: TestClient, auth_headers: dict):
         """测试获取不存在的旅行计划"""
-        response = client.get("/api/v1/travel-plans/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/travel-plans/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -105,7 +107,6 @@ class TestTravelPlanQuery:
         """测试获取其他用户的旅行计划（应该失败）"""
         # 这个测试需要创建另一个用户和他的旅行计划
         # 实际实现取决于是否允许查看其他用户的计划
-        pass
 
 
 class TestTravelPlanUpdate:
@@ -134,7 +135,10 @@ class TestTravelPlanUpdate:
     def test_update_travel_plan_not_found(self, client: TestClient, auth_headers: dict):
         """测试更新不存在的旅行计划"""
         update_data = {"title": "更新不存在的计划"}
-        response = client.put("/api/v1/travel-plans/99999", headers=auth_headers, json=update_data)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.put(f"/api/v1/travel-plans/{fake_uuid}", headers=auth_headers, json=update_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -179,7 +183,10 @@ class TestTravelPlanDeletion:
 
     def test_delete_travel_plan_not_found(self, client: TestClient, auth_headers: dict):
         """测试删除不存在的旅行计划"""
-        response = client.delete("/api/v1/travel-plans/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.delete(f"/api/v1/travel-plans/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

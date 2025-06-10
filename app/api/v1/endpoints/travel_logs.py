@@ -1,4 +1,6 @@
+# mypy: disable-error-code="arg-type"
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, desc
@@ -45,7 +47,7 @@ async def create_travel_log(
 async def get_travel_logs(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
-    travel_plan_id: Optional[int] = Query(None, description="旅行计划ID"),
+    travel_plan_id: Optional[UUID] = Query(None, description="旅行计划ID"),
     is_public: Optional[str] = Query(None, description="隐私级别"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -71,7 +73,7 @@ async def get_travel_logs(
 async def get_my_travel_logs(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
-    travel_plan_id: Optional[int] = Query(None, description="旅行计划ID"),
+    travel_plan_id: Optional[UUID] = Query(None, description="旅行计划ID"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -91,7 +93,7 @@ async def get_my_travel_logs(
 
 @router.get("/{log_id}", response_model=TravelLogResponse, summary="获取旅行日志详情")
 async def get_travel_log(
-    log_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    log_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """获取旅行日志详情"""
     result = await db.execute(select(TravelLog).where(TravelLog.id == log_id))
@@ -108,7 +110,7 @@ async def get_travel_log(
 
 @router.put("/{log_id}", response_model=TravelLogResponse, summary="更新旅行日志")
 async def update_travel_log(
-    log_id: int,
+    log_id: UUID,
     log_update: TravelLogUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -134,7 +136,7 @@ async def update_travel_log(
 
 @router.delete("/{log_id}", summary="删除旅行日志")
 async def delete_travel_log(
-    log_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    log_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """删除旅行日志"""
     result = await db.execute(

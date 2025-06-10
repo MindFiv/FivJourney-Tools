@@ -1,14 +1,16 @@
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text
+import uuid
+
+from sqlalchemy import Boolean, Column, DateTime, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.core.database import Base
+from app.core.database import GUID, Base
 
 
 class User(Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)  # type: ignore[var-annotated]
     username = Column(String(50), unique=True, index=True, nullable=False)
     email = Column(String(100), unique=True, index=True, nullable=False)
     hashed_password = Column(String(128), nullable=False)

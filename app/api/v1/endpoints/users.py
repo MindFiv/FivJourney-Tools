@@ -1,3 +1,6 @@
+# mypy: disable-error-code="arg-type"
+from uuid import UUID
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -40,7 +43,7 @@ async def update_current_user(
 
 @router.get("/{user_id}", response_model=UserResponse, summary="获取用户信息")
 async def get_user(
-    user_id: int, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)
+    user_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)
 ):
     """获取指定用户信息"""
     result = await db.execute(select(User).where(User.id == user_id))

@@ -1,4 +1,7 @@
+# mypy: disable-error-code="arg-type"
+from datetime import date
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, desc, func, select
@@ -62,7 +65,7 @@ async def get_travel_plans(
 
 @router.get("/{plan_id}", response_model=TravelPlanResponse, summary="获取旅行计划详情")
 async def get_travel_plan(
-    plan_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    plan_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """获取旅行计划详情"""
     result = await db.execute(
@@ -77,7 +80,7 @@ async def get_travel_plan(
 
 @router.put("/{plan_id}", response_model=TravelPlanResponse, summary="更新旅行计划")
 async def update_travel_plan(
-    plan_id: int,
+    plan_id: UUID,
     plan_update: TravelPlanUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -103,7 +106,7 @@ async def update_travel_plan(
 
 @router.delete("/{plan_id}", summary="删除旅行计划")
 async def delete_travel_plan(
-    plan_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    plan_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """删除旅行计划"""
     result = await db.execute(
@@ -122,7 +125,7 @@ async def delete_travel_plan(
 # 费用相关的子路由
 @router.post("/{plan_id}/expenses/", response_model=ExpenseResponse, summary="创建费用记录")
 async def create_expense_for_plan(
-    plan_id: int,
+    plan_id: UUID,
     expense_data: ExpenseCreate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -151,7 +154,7 @@ async def create_expense_for_plan(
 
 @router.get("/{plan_id}/expenses/", response_model=List[ExpenseResponse], summary="获取旅行计划的费用记录")
 async def get_expenses_for_plan(
-    plan_id: int,
+    plan_id: UUID,
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
     current_user: User = Depends(get_current_active_user),
@@ -183,7 +186,7 @@ async def get_expenses_for_plan(
 
 @router.get("/{plan_id}/expenses/statistics", summary="获取旅行计划的费用统计")
 async def get_expense_statistics_for_plan(
-    plan_id: int,
+    plan_id: UUID,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):

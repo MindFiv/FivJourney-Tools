@@ -1,16 +1,11 @@
 from datetime import datetime
-from decimal import Decimal
 
 import pytest
-import pytest_asyncio
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.models.enums import ExpenseCategory
 from app.models.expense import Expense
 from app.models.travel_plan import TravelPlan
-from app.models.user import User
 
 
 class TestExpenseCreation:
@@ -29,7 +24,7 @@ class TestExpenseCreation:
         assert float(data["amount"]) == sample_expense_data["amount"]
         assert data["category"] == sample_expense_data["category"]
         assert data["description"] == sample_expense_data["description"]
-        assert data["travel_plan_id"] == test_travel_plan.id
+        assert data["travel_plan_id"] == str(test_travel_plan.id)
         assert "id" in data
 
     def test_create_expense_unauthorized(
@@ -44,7 +39,12 @@ class TestExpenseCreation:
         self, client: TestClient, auth_headers: dict, sample_expense_data: dict
     ):
         """测试为不存在的旅行计划创建费用"""
-        response = client.post("/api/v1/travel-plans/99999/expenses/", headers=auth_headers, json=sample_expense_data)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.post(
+            f"/api/v1/travel-plans/{fake_uuid}/expenses/", headers=auth_headers, json=sample_expense_data
+        )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -129,7 +129,7 @@ class TestExpenseQuery:
         assert len(data) >= 1
 
         expense_ids = [expense["id"] for expense in data]
-        assert test_expense.id in expense_ids
+        assert str(test_expense.id) in expense_ids
 
     def test_get_expense_by_id(self, client: TestClient, auth_headers: dict, test_expense: Expense):
         """测试通过ID获取费用记录"""
@@ -137,13 +137,16 @@ class TestExpenseQuery:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_expense.id
+        assert data["id"] == str(test_expense.id)
         assert data["amount"] == str(test_expense.amount)  # API返回字符串格式的金额
         assert data["category"] == test_expense.category.value
 
     def test_get_expense_not_found(self, client: TestClient, auth_headers: dict):
         """测试获取不存在的费用记录"""
-        response = client.get("/api/v1/expenses/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/expenses/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -163,7 +166,7 @@ class TestExpenseQuery:
 
         if len(data) > 0:  # 如果有费用记录
             expense_ids = [expense["id"] for expense in data]
-            assert test_expense.id in expense_ids
+            assert str(test_expense.id) in expense_ids
 
 
 class TestExpenseUpdate:
@@ -192,7 +195,10 @@ class TestExpenseUpdate:
     def test_update_expense_not_found(self, client: TestClient, auth_headers: dict):
         """测试更新不存在的费用记录"""
         update_data = {"amount": 300.00}
-        response = client.put("/api/v1/expenses/99999", headers=auth_headers, json=update_data)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.put(f"/api/v1/expenses/{fake_uuid}", headers=auth_headers, json=update_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -226,7 +232,10 @@ class TestExpenseDeletion:
 
     def test_delete_expense_not_found(self, client: TestClient, auth_headers: dict):
         """测试删除不存在的费用记录"""
-        response = client.delete("/api/v1/expenses/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.delete(f"/api/v1/expenses/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -367,7 +376,7 @@ class TestExpenseValidation:
         self, client: TestClient, auth_headers: dict, test_travel_plan: TravelPlan, sample_expense_data: dict
     ):
         """测试未来的费用日期"""
-        from datetime import date, timedelta
+        from datetime import timedelta
 
         sample_expense_data["expense_date"] = (datetime.now() + timedelta(days=30)).isoformat()
         response = client.post(

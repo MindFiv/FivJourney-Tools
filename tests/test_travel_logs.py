@@ -16,7 +16,7 @@ class TestTravelLogCreation:
         self, client: TestClient, auth_headers: dict, test_travel_plan: TravelPlan, sample_travel_log_data: dict
     ):
         """测试创建旅行日志成功"""
-        sample_travel_log_data["travel_plan_id"] = test_travel_plan.id
+        sample_travel_log_data["travel_plan_id"] = str(test_travel_plan.id)
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=sample_travel_log_data)
 
         assert response.status_code == status.HTTP_200_OK
@@ -24,7 +24,7 @@ class TestTravelLogCreation:
         assert data["title"] == sample_travel_log_data["title"]
         assert data["content"] == sample_travel_log_data["content"]
         assert data["location"] == sample_travel_log_data["location"]
-        assert data["travel_plan_id"] == test_travel_plan.id
+        assert data["travel_plan_id"] == str(test_travel_plan.id)
         assert "id" in data
         assert "author_id" in data
 
@@ -32,7 +32,7 @@ class TestTravelLogCreation:
         self, client: TestClient, test_travel_plan: TravelPlan, sample_travel_log_data: dict
     ):
         """测试未认证创建旅行日志"""
-        sample_travel_log_data["travel_plan_id"] = test_travel_plan.id
+        sample_travel_log_data["travel_plan_id"] = str(test_travel_plan.id)
         response = client.post("/api/v1/travel-logs/", json=sample_travel_log_data)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -61,7 +61,7 @@ class TestTravelLogCreation:
             "weather": "晴天",
             "mood": "开心",
             "is_public": "public",
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=log_data)
 
@@ -83,7 +83,7 @@ class TestTravelLogCreation:
             "content": "隐私级别测试内容",
             "log_date": datetime.now().isoformat(),
             "is_public": privacy_level,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=log_data)
 
@@ -109,7 +109,7 @@ class TestTravelLogQuery:
             "mood": "开心",
             "is_public": "public",
             "author_id": test_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -130,7 +130,7 @@ class TestTravelLogQuery:
             "log_date": datetime.now(),
             "is_public": "private",
             "author_id": test_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -150,7 +150,7 @@ class TestTravelLogQuery:
 
         # 验证包含测试日志
         log_ids = [log["id"] for log in data]
-        assert test_travel_log.id in log_ids
+        assert str(test_travel_log.id) in log_ids
 
     def test_get_travel_logs_with_pagination(self, client: TestClient, auth_headers: dict):
         """测试带分页的旅行日志查询"""
@@ -170,7 +170,7 @@ class TestTravelLogQuery:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         for log in data:
-            assert log["travel_plan_id"] == test_travel_plan.id
+            assert log["travel_plan_id"] == str(test_travel_plan.id)
 
     def test_get_travel_logs_by_privacy(self, client: TestClient, auth_headers: dict, test_travel_log: TravelLog):
         """测试按隐私级别过滤日志"""
@@ -193,8 +193,8 @@ class TestTravelLogQuery:
 
         # 应该包含当前用户的所有日志（包括私有的）
         log_ids = [log["id"] for log in data]
-        assert test_travel_log.id in log_ids
-        assert test_private_log.id in log_ids
+        assert str(test_travel_log.id) in log_ids
+        assert str(test_private_log.id) in log_ids
 
     def test_get_travel_log_by_id_success(self, client: TestClient, auth_headers: dict, test_travel_log: TravelLog):
         """测试通过ID获取旅行日志详情成功"""
@@ -202,13 +202,16 @@ class TestTravelLogQuery:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_travel_log.id
+        assert data["id"] == str(test_travel_log.id)
         assert data["title"] == test_travel_log.title
         assert data["content"] == test_travel_log.content
 
     def test_get_travel_log_by_id_not_found(self, client: TestClient, auth_headers: dict):
         """测试获取不存在的旅行日志"""
-        response = client.get("/api/v1/travel-logs/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/travel-logs/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -249,7 +252,7 @@ class TestTravelLogUpdate:
             "mood": "原始心情",
             "is_public": "private",
             "author_id": test_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -302,7 +305,10 @@ class TestTravelLogUpdate:
     def test_update_travel_log_not_found(self, client: TestClient, auth_headers: dict):
         """测试更新不存在的旅行日志"""
         update_data = {"title": "更新不存在的日志"}
-        response = client.put("/api/v1/travel-logs/99999", headers=auth_headers, json=update_data)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.put(f"/api/v1/travel-logs/{fake_uuid}", headers=auth_headers, json=update_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -328,7 +334,7 @@ class TestTravelLogDeletion:
             "location": "删除测试地点",
             "log_date": datetime.now(),
             "author_id": test_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -351,7 +357,10 @@ class TestTravelLogDeletion:
 
     def test_delete_travel_log_not_found(self, client: TestClient, auth_headers: dict):
         """测试删除不存在的旅行日志"""
-        response = client.delete("/api/v1/travel-logs/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.delete(f"/api/v1/travel-logs/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -373,7 +382,7 @@ class TestTravelLogValidation:
             "title": "",  # 空标题
             "content": "有内容但标题为空",
             "log_date": datetime.now().isoformat(),
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=invalid_data)
 
@@ -387,7 +396,7 @@ class TestTravelLogValidation:
             "title": "有标题但内容为空",
             "content": "",  # 空内容
             "log_date": datetime.now().isoformat(),
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=invalid_data)
 
@@ -402,7 +411,7 @@ class TestTravelLogValidation:
             "content": "测试无效的隐私级别",
             "log_date": datetime.now().isoformat(),
             "is_public": "invalid_privacy",  # 无效的隐私级别
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=invalid_data)
 
@@ -416,7 +425,7 @@ class TestTravelLogValidation:
             "title": "a" * 300,  # 超过字符限制
             "content": "正常内容",
             "log_date": datetime.now().isoformat(),
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=invalid_data)
 
@@ -431,7 +440,7 @@ class TestTravelLogValidation:
             "title": "未来日志",
             "content": "记录未来的旅行",
             "log_date": future_date.isoformat(),
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=log_data)
 
@@ -476,7 +485,7 @@ class TestTravelLogPermissions:
             "log_date": datetime.now(),
             "is_public": "private",
             "author_id": other_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -499,7 +508,7 @@ class TestTravelLogPermissions:
             "log_date": datetime.now(),
             "is_public": "public",
             "author_id": other_user.id,
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
 
         log = TravelLog(**log_data)
@@ -524,7 +533,7 @@ class TestTravelLogPermissions:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == other_user_public_log.id
+        assert data["id"] == str(other_user_public_log.id)
         assert data["is_public"] == "public"
 
     def test_update_other_user_log(self, client: TestClient, auth_headers: dict, other_user_public_log: TravelLog):
@@ -558,7 +567,7 @@ class TestTravelLogFiltering:
                 "is_public": "public",
                 "weather": "晴天",
                 "author_id": test_user.id,
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
             },
             {
                 "title": "私有日志1",
@@ -568,7 +577,7 @@ class TestTravelLogFiltering:
                 "is_public": "private",
                 "weather": "雨天",
                 "author_id": test_user.id,
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
             },
             {
                 "title": "朋友可见日志1",
@@ -578,7 +587,7 @@ class TestTravelLogFiltering:
                 "is_public": "friends",
                 "weather": "多云",
                 "author_id": test_user.id,
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
             },
         ]
 
@@ -621,7 +630,7 @@ class TestTravelLogFiltering:
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
         for log in data:
-            assert log["travel_plan_id"] == test_travel_plan.id
+            assert log["travel_plan_id"] == str(test_travel_plan.id)
 
     def test_pagination_with_limits(self, client: TestClient, auth_headers: dict, setup_multiple_logs):
         """测试分页和限制"""
@@ -646,7 +655,7 @@ class TestTravelLogIntegration:
     ):
         """测试旅行日志完整生命周期"""
         # 1. 创建旅行日志
-        sample_travel_log_data["travel_plan_id"] = test_travel_plan.id
+        sample_travel_log_data["travel_plan_id"] = str(test_travel_plan.id)
         create_response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=sample_travel_log_data)
         assert create_response.status_code == status.HTTP_200_OK
         log_id = create_response.json()["id"]
@@ -704,7 +713,7 @@ class TestTravelLogIntegration:
             "content": "测试隐私级别变化",
             "log_date": datetime.now().isoformat(),
             "is_public": "private",
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         create_response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=log_data)
         assert create_response.status_code == status.HTTP_200_OK
@@ -737,7 +746,7 @@ class TestTravelLogIntegration:
             "title": "关联测试日志",
             "content": "测试与旅行计划的关联",
             "log_date": datetime.now().isoformat(),
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
         }
         create_response = client.post("/api/v1/travel-logs/", headers=auth_headers, json=log_data)
         assert create_response.status_code == status.HTTP_200_OK
@@ -753,4 +762,4 @@ class TestTravelLogIntegration:
 
         # 验证所有返回的日志都属于该旅行计划
         for log in filtered_logs:
-            assert log["travel_plan_id"] == test_travel_plan.id
+            assert log["travel_plan_id"] == str(test_travel_plan.id)

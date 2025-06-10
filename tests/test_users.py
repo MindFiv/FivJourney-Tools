@@ -1,7 +1,6 @@
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.user import User
 
@@ -15,7 +14,7 @@ class TestUserProfile:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_user.id
+        assert data["id"] == str(test_user.id)
         assert data["username"] == test_user.username
         assert data["email"] == test_user.email
         assert data["full_name"] == test_user.full_name
@@ -78,7 +77,7 @@ class TestUserProfile:
         data = response.json()
         assert data["username"] == original_username  # 用户名不应该改变
         assert data["email"] == original_email  # 邮箱不应该改变
-        assert data["id"] == test_user.id  # ID不应该改变
+        assert data["id"] == str(test_user.id)  # ID不应该改变
         assert data["full_name"] == update_data["full_name"]  # 允许更新的字段应该改变
 
 
@@ -127,13 +126,16 @@ class TestUserQueries:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_user.id
+        assert data["id"] == str(test_user.id)
         assert data["username"] == test_user.username
         assert "hashed_password" not in data
 
     def test_get_user_by_id_not_found(self, client: TestClient, auth_headers: dict):
         """测试获取不存在的用户"""
-        response = client.get("/api/v1/users/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/users/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 

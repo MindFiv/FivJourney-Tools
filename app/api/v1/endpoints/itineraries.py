@@ -1,4 +1,6 @@
+# mypy: disable-error-code="arg-type"
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, asc
@@ -45,7 +47,7 @@ async def create_itinerary(
 
 @router.get("/travel-plan/{travel_plan_id}", response_model=List[ItineraryResponse], summary="获取行程列表（兼容路径）")
 async def get_itineraries_by_plan_alt(
-    travel_plan_id: int,
+    travel_plan_id: UUID,
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
     day_number: Optional[int] = Query(None, description="筛选特定天数"),
@@ -61,7 +63,7 @@ async def get_itineraries_by_plan_alt(
     "/travel-plans/{travel_plan_id}/itineraries/", response_model=List[ItineraryResponse], summary="获取行程列表"
 )
 async def get_itineraries_by_plan(
-    travel_plan_id: int,
+    travel_plan_id: UUID,
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
     day_number: Optional[int] = Query(None, description="筛选特定天数"),
@@ -101,7 +103,7 @@ async def get_itineraries_by_plan(
 
 @router.get("/{itinerary_id}", response_model=ItineraryResponse, summary="获取行程详情")
 async def get_itinerary(
-    itinerary_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """获取行程详情"""
     result = await db.execute(
@@ -118,7 +120,7 @@ async def get_itinerary(
 
 @router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程")
 async def update_itinerary(
-    itinerary_id: int,
+    itinerary_id: UUID,
     itinerary_update: ItineraryUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -146,7 +148,7 @@ async def update_itinerary(
 
 @router.delete("/{itinerary_id}", summary="删除行程")
 async def delete_itinerary(
-    itinerary_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """删除行程"""
     result = await db.execute(

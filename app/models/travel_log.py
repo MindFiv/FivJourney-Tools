@@ -1,14 +1,16 @@
-from sqlalchemy import JSON, Column, DateTime, ForeignKey, Integer, Numeric, String, Text
+import uuid
+
+from sqlalchemy import JSON, Column, DateTime, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.core.database import Base
+from app.core.database import GUID, Base
 
 
 class TravelLog(Base):
     __tablename__ = "travel_logs"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)  # type: ignore[var-annotated]
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
     log_date = Column(DateTime, nullable=False)
@@ -22,8 +24,8 @@ class TravelLog(Base):
     is_public = Column(String(10), default="private")  # 是否公开：public/private/friends
 
     # 外键关联
-    author_id = Column(Integer, ForeignKey("users.id"), nullable=False)
-    travel_plan_id = Column(Integer, ForeignKey("travel_plans.id"))
+    author_id = Column(GUID(), ForeignKey("users.id"), nullable=False)  # type: ignore[var-annotated]
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"))  # type: ignore[var-annotated]
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())

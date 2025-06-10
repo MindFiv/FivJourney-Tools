@@ -1,4 +1,3 @@
-import pytest
 import pytest_asyncio
 from fastapi import status
 from fastapi.testclient import TestClient
@@ -16,7 +15,7 @@ class TestItineraryCreation:
         self, client: TestClient, auth_headers: dict, test_travel_plan: TravelPlan, sample_itinerary_data: dict
     ):
         """测试创建行程成功"""
-        sample_itinerary_data["travel_plan_id"] = test_travel_plan.id
+        sample_itinerary_data["travel_plan_id"] = str(test_travel_plan.id)
         response = client.post("/api/v1/itineraries/", headers=auth_headers, json=sample_itinerary_data)
 
         assert response.status_code == status.HTTP_200_OK
@@ -24,14 +23,14 @@ class TestItineraryCreation:
         assert data["day_number"] == sample_itinerary_data["day_number"]
         assert data["location"] == sample_itinerary_data["location"]
         assert data["activity"] == sample_itinerary_data["activity"]
-        assert data["travel_plan_id"] == test_travel_plan.id
+        assert data["travel_plan_id"] == str(test_travel_plan.id)
         assert "id" in data
 
     def test_create_itinerary_unauthorized(
         self, client: TestClient, test_travel_plan: TravelPlan, sample_itinerary_data: dict
     ):
         """测试未认证创建行程"""
-        sample_itinerary_data["travel_plan_id"] = test_travel_plan.id
+        sample_itinerary_data["travel_plan_id"] = str(test_travel_plan.id)
         response = client.post("/api/v1/itineraries/", json=sample_itinerary_data)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -40,7 +39,9 @@ class TestItineraryCreation:
         self, client: TestClient, auth_headers: dict, sample_itinerary_data: dict
     ):
         """测试创建行程时使用无效的旅行计划ID"""
-        sample_itinerary_data["travel_plan_id"] = 99999  # 不存在的计划ID
+        import uuid
+
+        sample_itinerary_data["travel_plan_id"] = str(uuid.uuid4())  # 不存在的计划ID
         response = client.post("/api/v1/itineraries/", headers=auth_headers, json=sample_itinerary_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -50,7 +51,7 @@ class TestItineraryCreation:
     ):
         """测试创建行程缺少必填字段"""
         incomplete_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             # 缺少location, activity等必填字段
         }
@@ -65,7 +66,7 @@ class TestItineraryCreation:
         from datetime import date, time, timedelta
 
         itinerary_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "测试地点",
@@ -92,7 +93,7 @@ class TestItineraryQuery:
         from datetime import date, time, timedelta
 
         itinerary_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": date.today() + timedelta(days=1),
             "location": "测试地点",
@@ -121,7 +122,7 @@ class TestItineraryQuery:
 
         # 验证包含测试行程
         itinerary_ids = [itinerary["id"] for itinerary in data]
-        assert test_itinerary.id in itinerary_ids
+        assert str(test_itinerary.id) in itinerary_ids
 
     def test_get_itineraries_by_plan_unauthorized(self, client: TestClient, test_travel_plan: TravelPlan):
         """测试未认证获取行程列表"""
@@ -131,7 +132,10 @@ class TestItineraryQuery:
 
     def test_get_itineraries_by_invalid_plan(self, client: TestClient, auth_headers: dict):
         """测试获取不存在旅行计划的行程列表"""
-        response = client.get("/api/v1/itineraries/travel-plan/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/itineraries/travel-plan/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -141,13 +145,16 @@ class TestItineraryQuery:
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
-        assert data["id"] == test_itinerary.id
+        assert data["id"] == str(test_itinerary.id)
         assert data["location"] == test_itinerary.location
         assert data["activity"] == test_itinerary.activity
 
     def test_get_itinerary_by_id_not_found(self, client: TestClient, auth_headers: dict):
         """测试获取不存在的行程"""
-        response = client.get("/api/v1/itineraries/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.get(f"/api/v1/itineraries/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -167,7 +174,7 @@ class TestItineraryUpdate:
         from datetime import date, time, timedelta
 
         itinerary_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": date.today() + timedelta(days=1),
             "location": "原始地点",
@@ -220,7 +227,10 @@ class TestItineraryUpdate:
     def test_update_itinerary_not_found(self, client: TestClient, auth_headers: dict):
         """测试更新不存在的行程"""
         update_data = {"location": "更新不存在的行程"}
-        response = client.put("/api/v1/itineraries/99999", headers=auth_headers, json=update_data)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.put(f"/api/v1/itineraries/{fake_uuid}", headers=auth_headers, json=update_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -241,7 +251,7 @@ class TestItineraryDeletion:
         from datetime import date, timedelta
 
         itinerary_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": date.today() + timedelta(days=1),
             "location": "要删除的地点",
@@ -268,7 +278,10 @@ class TestItineraryDeletion:
 
     def test_delete_itinerary_not_found(self, client: TestClient, auth_headers: dict):
         """测试删除不存在的行程"""
-        response = client.delete("/api/v1/itineraries/99999", headers=auth_headers)
+        import uuid
+
+        fake_uuid = str(uuid.uuid4())
+        response = client.delete(f"/api/v1/itineraries/{fake_uuid}", headers=auth_headers)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
@@ -287,7 +300,7 @@ class TestItineraryValidation:
         from datetime import date, timedelta
 
         invalid_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": -1,  # 无效的天数
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "测试地点",
@@ -302,7 +315,7 @@ class TestItineraryValidation:
         from datetime import date, timedelta
 
         invalid_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 0,  # 无效的天数
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "测试地点",
@@ -317,7 +330,7 @@ class TestItineraryValidation:
         from datetime import date, timedelta
 
         invalid_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "",  # 空地点
@@ -332,7 +345,7 @@ class TestItineraryValidation:
         from datetime import date, timedelta
 
         invalid_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "测试地点",
@@ -347,7 +360,7 @@ class TestItineraryValidation:
         from datetime import date, time, timedelta
 
         invalid_data = {
-            "travel_plan_id": test_travel_plan.id,
+            "travel_plan_id": str(test_travel_plan.id),
             "day_number": 1,
             "date": (date.today() + timedelta(days=1)).isoformat(),
             "location": "测试地点",
@@ -412,7 +425,7 @@ class TestItineraryPermissions:
         self, client: TestClient, auth_headers: dict, other_user_travel_plan: TravelPlan, sample_itinerary_data: dict
     ):
         """测试为其他用户的旅行计划创建行程（应该失败）"""
-        sample_itinerary_data["travel_plan_id"] = other_user_travel_plan.id
+        sample_itinerary_data["travel_plan_id"] = str(other_user_travel_plan.id)
         response = client.post("/api/v1/itineraries/", headers=auth_headers, json=sample_itinerary_data)
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -434,7 +447,7 @@ class TestItineraryIntegration:
     ):
         """测试行程完整生命周期"""
         # 1. 创建行程
-        sample_itinerary_data["travel_plan_id"] = test_travel_plan.id
+        sample_itinerary_data["travel_plan_id"] = str(test_travel_plan.id)
         create_response = client.post("/api/v1/itineraries/", headers=auth_headers, json=sample_itinerary_data)
         assert create_response.status_code == status.HTTP_200_OK
         itinerary_id = create_response.json()["id"]
@@ -476,7 +489,7 @@ class TestItineraryIntegration:
         # 创建多个行程
         itineraries_data = [
             {
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
                 "day_number": 2,
                 "date": (date.today() + timedelta(days=2)).isoformat(),
                 "location": "地点2",
@@ -484,7 +497,7 @@ class TestItineraryIntegration:
                 "start_time": time(14, 0).isoformat(),
             },
             {
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
                 "day_number": 1,
                 "date": (date.today() + timedelta(days=1)).isoformat(),
                 "location": "地点1",
@@ -492,7 +505,7 @@ class TestItineraryIntegration:
                 "start_time": time(9, 0).isoformat(),
             },
             {
-                "travel_plan_id": test_travel_plan.id,
+                "travel_plan_id": str(test_travel_plan.id),
                 "day_number": 1,
                 "date": (date.today() + timedelta(days=1)).isoformat(),
                 "location": "地点1-下午",

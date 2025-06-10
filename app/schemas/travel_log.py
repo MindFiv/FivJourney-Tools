@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -42,7 +43,7 @@ class TravelLogBase(BaseModel):
 
 
 class TravelLogCreate(TravelLogBase):
-    travel_plan_id: Optional[int] = None
+    travel_plan_id: Optional[UUID] = None
     images: Optional[List[str]] = None
 
 
@@ -84,10 +85,10 @@ class TravelLogUpdate(BaseModel):
 
 
 class TravelLogResponse(TravelLogBase):
-    id: int
+    id: UUID
     images: Optional[List[str]] = None
-    author_id: int
-    travel_plan_id: Optional[int] = None
+    author_id: UUID
+    travel_plan_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
 

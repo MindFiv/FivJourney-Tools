@@ -1,6 +1,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -87,10 +88,10 @@ class TravelPlanUpdate(BaseModel):
 
 
 class TravelPlanResponse(TravelPlanBase):
-    id: int
+    id: UUID
     status: TravelStatus
     cover_image: Optional[str] = None
-    owner_id: int
+    owner_id: UUID
     created_at: datetime
     updated_at: datetime
 

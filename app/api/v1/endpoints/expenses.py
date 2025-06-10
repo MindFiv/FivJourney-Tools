@@ -1,5 +1,8 @@
+# mypy: disable-error-code="arg-type"
+from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
+from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import and_, func, select
@@ -7,7 +10,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
 from app.core.security import get_current_active_user
-from app.models.expense import Expense, ExpenseCategory
+from app.models.enums import ExpenseCategory
+from app.models.expense import Expense
 from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 
@@ -35,7 +39,7 @@ async def get_expenses(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
     category: Optional[ExpenseCategory] = None,
-    travel_plan_id: Optional[int] = None,
+    travel_plan_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -58,7 +62,7 @@ async def get_expenses(
 
 @router.get("/statistics", summary="获取费用统计")
 async def get_expense_statistics(
-    travel_plan_id: Optional[int] = None,
+    travel_plan_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -93,7 +97,7 @@ async def get_expense_statistics(
 
 @router.get("/{expense_id}", response_model=ExpenseResponse, summary="获取费用记录详情")
 async def get_expense(
-    expense_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """获取指定费用记录的详情"""
     result = await db.execute(select(Expense).where(and_(Expense.id == expense_id, Expense.user_id == current_user.id)))
@@ -107,7 +111,7 @@ async def get_expense(
 
 @router.put("/{expense_id}", response_model=ExpenseResponse, summary="更新费用记录")
 async def update_expense(
-    expense_id: int,
+    expense_id: UUID,
     expense_update: ExpenseUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -131,7 +135,7 @@ async def update_expense(
 
 @router.delete("/{expense_id}", summary="删除费用记录")
 async def delete_expense(
-    expense_id: int, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
     """删除费用记录"""
     result = await db.execute(select(Expense).where(and_(Expense.id == expense_id, Expense.user_id == current_user.id)))

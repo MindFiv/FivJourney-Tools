@@ -1,17 +1,17 @@
-from typing import Optional
+import uuid
 
 from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, Time
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.core.database import Base
+from app.core.database import GUID, Base
 from app.models.enums import ActivityType
 
 
 class Itinerary(Base):
     __tablename__ = "itineraries"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)  # type: ignore[var-annotated]
     day_number = Column(Integer, nullable=False)  # 第几天
     date = Column(Date, nullable=False)  # 日期
     location = Column(String(200), nullable=False)  # 地点
@@ -31,7 +31,7 @@ class Itinerary(Base):
     booking_reference = Column(String(100))  # 预订参考号
 
     # 外键关联
-    travel_plan_id = Column(Integer, ForeignKey("travel_plans.id"), nullable=False)
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"), nullable=False)  # type: ignore[var-annotated]
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())

@@ -1,15 +1,17 @@
-from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text
+import uuid
+
+from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Numeric, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
-from app.core.database import Base
+from app.core.database import GUID, Base
 from app.models.enums import TravelStatus
 
 
 class TravelPlan(Base):
     __tablename__ = "travel_plans"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)  # type: ignore[var-annotated]
     title = Column(String(200), nullable=False)
     description = Column(Text)
     destination = Column(String(100), nullable=False)
@@ -21,7 +23,7 @@ class TravelPlan(Base):
     tags = Column(String(500))  # 标签，逗号分隔
 
     # 外键关联
-    owner_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    owner_id = Column(GUID(), ForeignKey("users.id"), nullable=False)  # type: ignore[var-annotated]
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())

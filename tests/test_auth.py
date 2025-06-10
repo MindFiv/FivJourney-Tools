@@ -1,7 +1,6 @@
 import pytest
 from fastapi import status
 from fastapi.testclient import TestClient
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import create_access_token, verify_password
 from app.models.user import User

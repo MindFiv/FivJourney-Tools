@@ -1,6 +1,7 @@
 from datetime import date, datetime, time
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -56,7 +57,7 @@ class ItineraryBase(BaseModel):
 
 
 class ItineraryCreate(ItineraryBase):
-    travel_plan_id: int
+    travel_plan_id: UUID
 
 
 class ItineraryUpdate(BaseModel):
@@ -99,8 +100,8 @@ class ItineraryUpdate(BaseModel):
 
 
 class ItineraryResponse(ItineraryBase):
-    id: int
-    travel_plan_id: int
+    id: UUID
+    travel_plan_id: UUID
     created_at: datetime
     updated_at: datetime
 

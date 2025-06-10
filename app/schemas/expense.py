@@ -1,6 +1,7 @@
 from datetime import datetime
 from decimal import Decimal
 from typing import Optional
+from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
@@ -33,7 +34,7 @@ class ExpenseBase(BaseModel):
 
 
 class ExpenseCreate(ExpenseBase):
-    travel_plan_id: Optional[int] = None
+    travel_plan_id: Optional[UUID] = None
 
 
 class ExpenseUpdate(BaseModel):
@@ -63,10 +64,10 @@ class ExpenseUpdate(BaseModel):
 
 
 class ExpenseResponse(ExpenseBase):
-    id: int
+    id: UUID
     receipt_image: Optional[str] = None
-    user_id: int
-    travel_plan_id: Optional[int] = None
+    user_id: UUID
+    travel_plan_id: Optional[UUID] = None
     created_at: datetime
     updated_at: datetime
 

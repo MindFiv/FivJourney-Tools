@@ -1,9 +1,44 @@
+import uuid
 from typing import AsyncGenerator
 
+from sqlalchemy import String, TypeDecorator
+from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
+
+
+class GUID(TypeDecorator):
+    """平台无关的GUID类型，在SQLite中存储为String，在PostgreSQL中使用UUID"""
+
+    impl = String
+    cache_ok = True
+
+    def load_dialect_impl(self, dialect):
+        if dialect.name == "postgresql":
+            return dialect.type_descriptor(PostgreSQLUUID(as_uuid=True))
+        else:
+            return dialect.type_descriptor(String(36))
+
+    def process_bind_param(self, value, dialect):
+        if value is None:
+            return value
+        elif dialect.name == "postgresql":
+            return value
+        else:
+            if isinstance(value, uuid.UUID):
+                return str(value)
+            return value
+
+    def process_result_value(self, value, dialect):
+        if value is None:
+            return value
+        else:
+            if isinstance(value, uuid.UUID):
+                return value
+            return uuid.UUID(value)
+
 
 # 创建异步数据库引擎
 if settings.DATABASE_URL.startswith("sqlite"):
