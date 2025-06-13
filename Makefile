@@ -43,6 +43,10 @@ help:
 	@echo "🗃️ 数据库:"
 	@echo "  db-migrate   - 生成数据库迁移"
 	@echo "  db-upgrade   - 应用数据库迁移"
+	@echo "  db-downgrade - 回滚上一个迁移"
+	@echo "  db-current   - 查看当前迁移状态"
+	@echo "  db-history   - 查看迁移历史"
+	@echo "  db-reset     - 重置数据库（危险操作）"
 	@echo ""
 	@echo "🧹 清理:"
 	@echo "  clean        - 清理临时文件"
@@ -187,13 +191,29 @@ docker-logs:
 
 # 数据库迁移（如果使用Alembic）
 db-init:
-	alembic init alembic
+	uv run alembic init alembic
 
 db-migrate:
-	alembic revision --autogenerate -m "Migration"
+	uv run alembic revision --autogenerate -m "Migration"
 
 db-upgrade:
-	alembic upgrade head
+	uv run alembic upgrade head
+
+db-downgrade:
+	uv run alembic downgrade -1
+
+db-current:
+	uv run alembic current
+
+db-history:
+	uv run alembic history
+
+db-reset:
+	@echo "⚠️  警告：这将删除所有数据！"
+	@read -p "确定要重置数据库吗？(y/N): " confirm && [ "$$confirm" = "y" ]
+	/opt/homebrew/opt/postgresql@16/bin/dropdb fivc_journey --if-exists
+	/opt/homebrew/opt/postgresql@16/bin/createdb fivc_journey
+	uv run alembic upgrade head
 
 # 生产部署
 deploy-prod:
