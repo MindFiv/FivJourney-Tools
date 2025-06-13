@@ -1,5 +1,265 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# 文档标准规则
+
+## 文档目录结构
+项目文档位于 [docs/](mdc:docs) 目录：
+
+### 核心文档文件
+- [docs/index.md](mdc:docs/index.md) - 项目总览和导航
+- [docs/README.md](mdc:docs/README.md) - 详细项目说明
+- [docs/quick-start.md](mdc:docs/quick-start.md) - 快速开始指南
+- [docs/development.md](mdc:docs/development.md) - 开发环境搭建
+- [docs/deployment.md](mdc:docs/deployment.md) - 部署指南
+- [docs/api.md](mdc:docs/api.md) - API 接口文档
+- [docs/models.md](mdc:docs/models.md) - 数据模型文档
+
+### 工具和指南文档
+- [docs/uv-guide.md](mdc:docs/uv-guide.md) - UV 包管理器使用指南
+- [docs/lint-guide.md](mdc:docs/lint-guide.md) - 代码质量检查指南
+
+## 文档编写规范
+### Markdown 格式
+- 使用标准 Markdown 语法
+- 标题层级清晰（# ## ### ####）
+- 代码块使用语法高亮
+- 链接使用相对路径
+- 图片存放在 `docs/images/` 目录
+
+### 中文文档规范
+- 使用简体中文
+- 专业术语保持一致
+- 中英文混排时注意空格
+- 标点符号使用中文标点
+
+### 代码示例
+```python
+# 代码块必须包含语言标识
+from fastapi import FastAPI
+
+app = FastAPI(title="旅游全程追踪系统")
+
+@app.get("/")
+async def root():
+    return {"message": "欢迎使用旅游全程追踪系统"}
+```
+
+## API 文档标准
+### 自动生成文档
+- 使用 FastAPI 自动生成 OpenAPI 文档
+- 访问地址：`http://localhost:8000/docs`（Swagger UI）
+- 访问地址：`http://localhost:8000/redoc`（ReDoc）
+
+### 端点文档要求
+```python
+@router.post(
+    "/travel-plans/",
+    response_model=TravelPlanResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="创建旅行计划",
+    description="""
+    创建新的旅行计划。
+    
+    **参数说明：**
+    - name: 旅行计划名称（必填，1-100字符）
+    - destination: 目的地（必填）
+    - start_date: 开始日期（必填，格式：YYYY-MM-DD）
+    - end_date: 结束日期（必填，必须晚于开始日期）
+    - budget: 预算（可选，单位：元）
+    
+    **返回数据：**
+    - 创建成功的旅行计划信息
+    - 包含系统生成的 ID 和时间戳
+    
+    **错误情况：**
+    - 401: 未登录
+    - 422: 数据验证失败
+    """
+)
+async def create_travel_plan(...):
+    pass
+```
+
+### Schema 文档
+```python
+class TravelPlanCreate(BaseModel):
+    """创建旅行计划的请求模型"""
+    
+    name: str = Field(..., min_length=1, max_length=100, description="旅行计划名称")
+    destination: str = Field(..., description="目的地")
+    start_date: date = Field(..., description="开始日期")
+    end_date: date = Field(..., description="结束日期")
+    budget: Optional[float] = Field(None, ge=0, description="预算（元）")
+    
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "北京五日游",
+                "destination": "北京",
+                "start_date": "2024-06-01",
+                "end_date": "2024-06-05",
+                "budget": 5000.0
+            }
+        }
+```
+
+## 开发文档标准
+### 环境搭建文档
+必须包含以下内容：
+- 系统要求（Python 版本、操作系统）
+- 依赖安装步骤
+- 数据库配置
+- 环境变量设置
+- 启动命令
+- 验证步骤
+
+### 代码结构说明
+```markdown
+## 项目结构
+```
+app/
+├── api/v1/              # API 路由 v1 版本
+│   ├── endpoints/       # 具体端点实现
+│   │   ├── auth.py     # 认证相关端点
+│   │   ├── users.py    # 用户管理端点
+│   │   └── ...
+│   ├── dependencies.py # 依赖注入
+│   └── router.py       # 路由汇总
+├── core/               # 核心配置
+│   ├── config.py      # 应用配置
+│   ├── database.py    # 数据库配置
+│   └── security.py    # 安全认证
+├── models/            # SQLAlchemy 模型
+├── schemas/           # Pydantic 模型
+└── __init__.py
+```
+```
+
+### 配置说明文档
+```markdown
+## 环境变量配置
+
+| 变量名 | 说明 | 默认值 | 示例 |
+|--------|------|--------|------|
+| DATABASE_URL | 数据库连接字符串 | sqlite:///./fivc_journey.db | postgresql://user:pass@localhost/db |
+| SECRET_KEY | JWT 密钥 | - | your-secret-key-here |
+| ACCESS_TOKEN_EXPIRE_MINUTES | Token 过期时间（分钟） | 30 | 60 |
+```
+
+## 部署文档标准
+### Docker 部署
+```markdown
+## Docker 部署
+
+### 构建镜像
+```bash
+make docker-build
+```
+
+### 启动服务
+```bash
+make docker-run
+```
+
+### 环境变量
+创建 `.env` 文件：
+```env
+DATABASE_URL=postgresql://user:password@db:5432/travel_tracker
+SECRET_KEY=your-secret-key
+```
+```
+
+### 生产环境部署
+- 服务器要求
+- 依赖安装
+- 数据库迁移
+- 反向代理配置
+- SSL 证书配置
+- 监控和日志
+
+## 文档维护规范
+### 版本控制
+- 文档与代码同步更新
+- 重大变更要更新相关文档
+- API 变更必须更新 API 文档
+- 保持文档的时效性
+
+### 文档审查
+- 新功能必须包含文档
+- PR 审查时检查文档更新
+- 定期审查文档准确性
+- 收集用户反馈改进文档
+
+### 文档链接
+```markdown
+# 相关文档链接示例
+- [快速开始](mdc:quick-start.md)
+- [API 文档](mdc:api.md)
+- [数据模型](mdc:models.md)
+- [部署指南](mdc:deployment.md)
+```
+
+## 注释和文档字符串
+### Python 文档字符串
+```python
+async def create_travel_plan(
+    plan_data: TravelPlanCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> TravelPlanResponse:
+    """创建新的旅行计划
+    
+    Args:
+        plan_data: 旅行计划创建数据
+        current_user: 当前登录用户
+        db: 数据库会话
+        
+    Returns:
+        TravelPlanResponse: 创建的旅行计划信息
+        
+    Raises:
+        HTTPException: 当数据验证失败或创建失败时
+        
+    Example:
+        >>> plan_data = TravelPlanCreate(name="北京游", destination="北京")
+        >>> plan = await create_travel_plan(plan_data, user, db)
+        >>> print(plan.name)
+        "北京游"
+    """
+```
+
+### 代码注释规范
+```python
+# 业务逻辑注释使用中文
+def calculate_total_expense(expenses: List[Expense]) -> float:
+    """计算总费用"""
+    total = 0.0
+    
+    # 遍历所有费用记录
+    for expense in expenses:
+        # 只计算已确认的费用
+        if expense.status == ExpenseStatus.CONFIRMED:
+            total += expense.amount
+    
+    return total
+```
+
+## 文档工具和自动化
+### 文档生成
+- 使用 FastAPI 自动生成 API 文档
+- 考虑使用 MkDocs 生成静态文档站点
+- 集成到 CI/CD 流程中
+
+### 文档检查
+- 检查文档链接有效性
+- 验证代码示例可执行性
+- 确保文档格式正确性
+
+### 文档发布
+- 文档版本管理
+- 自动部署到文档站点
+- 提供多种格式（HTML、PDF）
+

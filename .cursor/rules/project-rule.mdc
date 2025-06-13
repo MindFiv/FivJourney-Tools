@@ -1,5 +1,78 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# 旅游全程追踪系统（Travel Tracking System）Cursor 规则
+
+## 项目简介
+本项目为基于 FastAPI + SQLAlchemy 的旅游全程追踪后端系统，提供旅游行前、行中、行后的全过程追踪和帮助。
+
+## 目录结构
+```
+app/
+├── api/v1/              # API 路由
+│   ├── endpoints/       # 具体端点实现
+│   └── router.py        # 路由汇总
+├── core/                # 核心配置
+│   ├── config.py        # 应用配置
+│   ├── database.py      # 数据库配置
+│   └── security.py      # 安全认证
+├── models/              # SQLAlchemy 模型
+├── schemas/             # Pydantic 模型
+└── __init__.py
+```
+
+## 代码规范
+- 遵循 PEP 8，4 空格缩进，行宽 120 字符
+- 类型提示必须
+- 导入顺序：标准库 > 第三方库 > 本地应用 > 相对导入
+- 中文注释和 docstring，便于中文团队理解
+- API 端点需有 summary 和详细描述
+- 错误处理统一用 FastAPI 的 HTTPException，错误信息中文
+- 数据库表名用复数，字段 snake_case，含 created_at/updated_at
+- RESTful API，版本控制 /api/v1/
+- JWT 认证，密码 bcrypt 加密，Pydantic 校验
+- 所有需要认证的端点必须用 JWT token
+- 文件、类、函数、常量命名规范：snake_case、PascalCase、UPPER_CASE
+
+## 开发流程
+1. 在 models/ 定义数据库模型
+2. 在 schemas/ 定义 Pydantic 模型
+3. 在 api/v1/endpoints/ 创建 API 端点
+4. 在 router.py 注册路由
+5. 更新 README.md
+
+## 数据库模型要求
+- 继承 Base，表名复数
+- 字段含主键、外键、索引、时间戳
+- 明确关系定义
+
+## API 端点模式
+1. 导入依赖
+2. 定义路由装饰器和响应模型
+3. 中文 summary/描述
+4. 参数校验和权限检查
+5. 业务逻辑
+6. 错误处理
+7. 返回响应
+
+## 业务逻辑注意
+- 旅行计划状态：planning → confirmed → in_progress → completed
+- 费用分类：交通、住宿、餐饮、门票、购物、娱乐、保险、签证
+- 行程安排需考虑时间顺序和地理位置
+- 日志隐私：private/public/friends
+
+## 性能与国际化
+- 异步编程、查询优化、分页、大文件流式处理
+- 多币种、时区、多语言预留
+
+## 测试
+- 新功能需单元测试
+- API 用 FastAPI TestClient
+- 数据库用测试库
+
+---
+
+如需引用本规则，请使用 `[project-rule.mdc](mdc:project-rule.mdc)`。
+

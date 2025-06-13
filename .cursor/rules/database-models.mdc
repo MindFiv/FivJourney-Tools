@@ -1,5 +1,208 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# 数据库模型与 Schema 规则
+
+## 数据库模型结构
+模型文件位于 [app/models/](mdc:app/models) 目录：
+
+### 核心模型文件
+- [app/models/user.py](mdc:app/models/user.py) - 用户模型
+- [app/models/travel_plan.py](mdc:app/models/travel_plan.py) - 旅行计划
+- [app/models/itinerary.py](mdc:app/models/itinerary.py) - 行程安排
+- [app/models/expense.py](mdc:app/models/expense.py) - 费用记录
+- [app/models/travel_log.py](mdc:app/models/travel_log.py) - 旅行日志
+- [app/models/enums.py](mdc:app/models/enums.py) - 枚举定义
+- [app/models/__init__.py](mdc:app/models/__init__.py) - 模型导入汇总
+
+## 模型定义规范
+### 基础结构
+```python
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Text, Enum
+from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import relationship
+from datetime import datetime
+
+Base = declarative_base()
+
+class ModelName(Base):
+    __tablename__ = "table_names"  # 复数形式
+    
+    # 主键
+    id = Column(Integer, primary_key=True, index=True)
+    
+    # 业务字段
+    name = Column(String(100), nullable=False)
+    description = Column(Text, nullable=True)
+    
+    # 外键
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    
+    # 时间戳（必须）
+    created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)
+    
+    # 关系定义
+    user = relationship("User", back_populates="model_names")
+```
+
+### 表命名规范
+- 表名使用复数形式：`users`、`travel_plans`、`itineraries`
+- 字段名使用 snake_case：`created_at`、`user_id`
+- 外键命名：`{关联表单数}_id`
+
+### 必须字段
+每个模型都必须包含：
+- `id` - 主键，自增整数
+- `created_at` - 创建时间
+- `updated_at` - 更新时间
+
+### 关系定义
+```python
+# 一对多关系
+class User(Base):
+    travel_plans = relationship("TravelPlan", back_populates="user")
+
+class TravelPlan(Base):
+    user_id = Column(Integer, ForeignKey("users.id"))
+    user = relationship("User", back_populates="travel_plans")
+
+# 一对多嵌套关系
+class TravelPlan(Base):
+    itineraries = relationship("Itinerary", back_populates="travel_plan")
+    expenses = relationship("Expense", back_populates="travel_plan")
+```
+
+## 枚举定义
+枚举定义在 [app/models/enums.py](mdc:app/models/enums.py)：
+
+```python
+from enum import Enum
+
+class TravelPlanStatus(str, Enum):
+    PLANNING = "planning"
+    CONFIRMED = "confirmed"
+    IN_PROGRESS = "in_progress"
+    COMPLETED = "completed"
+
+class ExpenseCategory(str, Enum):
+    TRANSPORT = "transport"      # 交通
+    ACCOMMODATION = "accommodation"  # 住宿
+    FOOD = "food"               # 餐饮
+    TICKETS = "tickets"         # 门票
+    SHOPPING = "shopping"       # 购物
+    ENTERTAINMENT = "entertainment"  # 娱乐
+    INSURANCE = "insurance"     # 保险
+    VISA = "visa"              # 签证
+```
+
+## Pydantic Schema 结构
+Schema 文件位于 [app/schemas/](mdc:app/schemas) 目录：
+
+### Schema 文件组织
+- [app/schemas/user.py](mdc:app/schemas/user.py) - 用户相关 Schema
+- [app/schemas/travel_plan.py](mdc:app/schemas/travel_plan.py) - 旅行计划 Schema
+- [app/schemas/itinerary.py](mdc:app/schemas/itinerary.py) - 行程 Schema
+- [app/schemas/expense.py](mdc:app/schemas/expense.py) - 费用 Schema
+- [app/schemas/travel_log.py](mdc:app/schemas/travel_log.py) - 日志 Schema
+- [app/schemas/token.py](mdc:app/schemas/token.py) - 认证 Token Schema
+- [app/schemas/__init__.py](mdc:app/schemas/__init__.py) - Schema 导入汇总
+
+### Schema 命名规范
+每个资源通常需要以下 Schema：
+
+```python
+# 基础 Schema
+class XxxBase(BaseModel):
+    """共同字段"""
+    name: str
+    description: Optional[str] = None
+
+# 创建 Schema
+class XxxCreate(XxxBase):
+    """创建时需要的字段"""
+    pass
+
+# 更新 Schema
+class XxxUpdate(BaseModel):
+    """更新时可选的字段"""
+    name: Optional[str] = None
+    description: Optional[str] = None
+
+# 数据库 Schema（内部使用）
+class XxxInDB(XxxBase):
+    """数据库中的完整字段"""
+    id: int
+    user_id: int
+    created_at: datetime
+    updated_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+# 响应 Schema
+class XxxResponse(XxxInDB):
+    """API 响应字段"""
+    # 可以包含关联对象
+    user: Optional[UserResponse] = None
+```
+
+### 配置规范
+```python
+class Config:
+    from_attributes = True  # 支持 ORM 对象转换
+    json_encoders = {
+        datetime: lambda v: v.isoformat()  # 时间格式化
+    }
+```
+
+## 数据库配置
+数据库配置在 [app/core/database.py](mdc:app/core/database.py)：
+
+### 开发环境
+- 使用 SQLite：`fivc_journey.db`、`travel_tracker.db`
+- 异步支持：`aiosqlite`
+
+### 生产环境
+- 使用 PostgreSQL
+- 连接池配置
+- 异步支持：`asyncpg`
+
+## 数据验证规范
+### 字段验证
+```python
+from pydantic import validator, Field
+
+class TravelPlanCreate(BaseModel):
+    name: str = Field(..., min_length=1, max_length=100)
+    start_date: date = Field(...)
+    end_date: date = Field(...)
+    
+    @validator('end_date')
+    def end_date_must_be_after_start_date(cls, v, values):
+        if 'start_date' in values and v <= values['start_date']:
+            raise ValueError('结束日期必须晚于开始日期')
+        return v
+```
+
+### 业务逻辑验证
+- 日期范围检查
+- 用户权限验证
+- 数据完整性检查
+- 枚举值验证
+
+## 测试数据模型
+测试文件：[tests/test_models.py](mdc:tests/test_models.py)
+- 模型创建测试
+- 关系验证测试
+- 约束检查测试
+- Schema 序列化测试
+
+## 迁移管理
+- 使用 Alembic 进行数据库迁移
+- 迁移文件命名要有意义
+- 每次模型变更都要生成迁移
+- 生产环境谨慎执行迁移
+

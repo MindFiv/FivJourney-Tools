@@ -1,5 +1,151 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+# API 结构规则
+
+## API 版本控制
+- 使用 `/api/v1/` 前缀进行版本控制
+- 主路由文件：[app/api/v1/router.py](mdc:app/api/v1/router.py)
+- 依赖注入：[app/api/v1/dependencies.py](mdc:app/api/v1/dependencies.py)
+
+## 端点文件组织
+API 端点按功能模块分离到不同文件：
+
+### 认证相关
+- [app/api/v1/endpoints/auth.py](mdc:app/api/v1/endpoints/auth.py) - 登录、注册、token 刷新
+- [app/api/v1/endpoints/users.py](mdc:app/api/v1/endpoints/users.py) - 用户管理
+
+### 核心业务模块
+- [app/api/v1/endpoints/travel_plans.py](mdc:app/api/v1/endpoints/travel_plans.py) - 旅行计划管理
+- [app/api/v1/endpoints/itineraries.py](mdc:app/api/v1/endpoints/itineraries.py) - 行程安排
+- [app/api/v1/endpoints/expenses.py](mdc:app/api/v1/endpoints/expenses.py) - 费用管理
+- [app/api/v1/endpoints/travel_logs.py](mdc:app/api/v1/endpoints/travel_logs.py) - 旅行日志
+
+## 路由命名规范
+### RESTful 端点模式
+```python
+# 集合操作
+GET    /api/v1/travel-plans/     # 获取列表
+POST   /api/v1/travel-plans/     # 创建新资源
+
+# 单个资源操作
+GET    /api/v1/travel-plans/{id} # 获取单个资源
+PUT    /api/v1/travel-plans/{id} # 更新资源
+DELETE /api/v1/travel-plans/{id} # 删除资源
+```
+
+### 嵌套资源
+```python
+# 旅行计划下的行程
+GET    /api/v1/travel-plans/{plan_id}/itineraries/
+POST   /api/v1/travel-plans/{plan_id}/itineraries/
+
+# 旅行计划下的费用
+GET    /api/v1/travel-plans/{plan_id}/expenses/
+POST   /api/v1/travel-plans/{plan_id}/expenses/
+```
+
+## 端点实现模式
+每个端点文件应遵循以下结构：
+
+```python
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.ext.asyncio import AsyncSession
+from typing import List
+
+from app.core.database import get_db
+from app.core.security import get_current_active_user
+from app.models.user import User
+from app.schemas.xxx import XxxCreate, XxxUpdate, XxxResponse
+
+router = APIRouter()
+
+@router.get("/", response_model=List[XxxResponse], summary="获取列表")
+async def get_items(
+    skip: int = 0,
+    limit: int = 100,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """获取资源列表的详细描述"""
+    # 实现逻辑
+    pass
+
+@router.post("/", response_model=XxxResponse, summary="创建资源")
+async def create_item(
+    item_data: XxxCreate,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+):
+    """创建新资源的详细描述"""
+    # 实现逻辑
+    pass
+```
+
+## 依赖注入规范
+### 常用依赖
+- `get_db` - 数据库会话
+- `get_current_user` - 当前用户（可能未激活）
+- `get_current_active_user` - 当前活跃用户
+- `get_admin_user` - 管理员用户
+
+### 权限控制
+```python
+# 需要登录
+current_user: User = Depends(get_current_active_user)
+
+# 资源所有者检查
+async def get_user_travel_plan(
+    plan_id: int,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db)
+) -> TravelPlan:
+    # 检查资源是否属于当前用户
+    pass
+```
+
+## 错误处理规范
+```python
+# 资源不存在
+raise HTTPException(
+    status_code=status.HTTP_404_NOT_FOUND,
+    detail="旅行计划不存在"
+)
+
+# 权限不足
+raise HTTPException(
+    status_code=status.HTTP_403_FORBIDDEN,
+    detail="无权访问此资源"
+)
+
+# 数据验证失败
+raise HTTPException(
+    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+    detail="数据格式不正确"
+)
+```
+
+## 响应模型规范
+- 使用 Pydantic 模型定义响应格式
+- 响应模型位于 [app/schemas/](mdc:app/schemas) 目录
+- 每个端点必须指定 `response_model`
+- 列表端点使用 `List[XxxResponse]`
+- 分页响应使用统一的分页模型
+
+## API 文档
+- 每个端点必须有 `summary` 参数
+- 复杂端点需要详细的 `description`
+- 使用中文描述，便于团队理解
+- 参数说明要清晰明确
+
+## 测试覆盖
+每个端点都应该有对应的测试：
+- 正常流程测试
+- 错误情况测试
+- 权限验证测试
+- 数据验证测试
+
+测试文件位于 [tests/](mdc:tests) 目录，按端点文件对应命名。
+
