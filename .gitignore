@@ -163,10 +163,10 @@ cython_debug/
 .idea/
 
 # VSCode
-.vscode/
+# .vscode/
 
 # Cursor
-.cursor/
+# .cursor/
 
 # Database files
 *.db
