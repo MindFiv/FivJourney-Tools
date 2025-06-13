@@ -52,7 +52,7 @@ class TestAuth:
     def test_login_success(self, client: TestClient, test_user: User):
         """测试用户登录成功"""
         login_data = {"username": test_user.username, "password": "testpassword123"}
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -64,7 +64,7 @@ class TestAuth:
     def test_login_invalid_username(self, client: TestClient):
         """测试登录无效用户名"""
         login_data = {"username": "nonexistent", "password": "testpassword123"}
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "用户名或密码错误" in response.json()["detail"]
@@ -72,7 +72,7 @@ class TestAuth:
     def test_login_invalid_password(self, client: TestClient, test_user: User):
         """测试登录无效密码"""
         login_data = {"username": test_user.username, "password": "wrongpassword"}
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "用户名或密码错误" in response.json()["detail"]
@@ -80,7 +80,7 @@ class TestAuth:
     def test_login_inactive_user(self, client: TestClient, test_inactive_user: User):
         """测试登录非活跃用户"""
         login_data = {"username": test_inactive_user.username, "password": "testpassword123"}
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "用户账户已被禁用" in response.json()["detail"]
@@ -88,7 +88,7 @@ class TestAuth:
     def test_login_missing_data(self, client: TestClient):
         """测试登录缺失数据"""
         login_data = {"username": "testuser"}  # 缺少密码
-        response = client.post("/api/v1/auth/login", json=login_data)
+        response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
@@ -181,7 +181,7 @@ class TestAuthIntegration:
 
         # 2. 登录用户
         login_data = {"username": sample_user_data["username"], "password": sample_user_data["password"]}
-        login_response = client.post("/api/v1/auth/login", json=login_data)
+        login_response = client.post("/api/v1/auth/login-json", json=login_data)
         assert login_response.status_code == status.HTTP_200_OK
 
         # 3. 使用token访问受保护端点

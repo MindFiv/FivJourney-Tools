@@ -187,7 +187,7 @@ class TestUserIntegration:
 
         # 2. 登录用户
         login_data = {"username": sample_user_data["username"], "password": sample_user_data["password"]}
-        login_response = client.post("/api/v1/auth/login", json=login_data)
+        login_response = client.post("/api/v1/auth/login-json", json=login_data)
         assert login_response.status_code == status.HTTP_200_OK
         token = login_response.json()["access_token"]
         headers = {"Authorization": f"Bearer {token}"}
