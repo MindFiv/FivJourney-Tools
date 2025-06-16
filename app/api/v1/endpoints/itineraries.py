@@ -18,7 +18,7 @@ from app.schemas.itinerary import ItineraryCreate, ItineraryResponse, ItineraryU
 router = APIRouter()
 
 
-@router.post("/", response_model=ItineraryResponse, summary="创建行程")
+@router.post("/", response_model=ItineraryResponse, summary="创建行程", operation_id="itineraries_create")
 async def create_itinerary(
     itinerary_data: ItineraryCreate,
     current_user: User = Depends(get_current_active_user),
@@ -45,7 +45,7 @@ async def create_itinerary(
     return db_itinerary
 
 
-@router.get("/travel-plan/{travel_plan_id}", response_model=List[ItineraryResponse], summary="获取行程列表（兼容路径）")
+@router.get("/travel-plan/{travel_plan_id}", response_model=List[ItineraryResponse], summary="获取行程列表（兼容路径）", operation_id="itineraries_by_plan_alt")
 async def get_itineraries_by_plan_alt(
     travel_plan_id: UUID,
     skip: int = Query(0, ge=0, description="跳过的记录数"),
@@ -60,7 +60,7 @@ async def get_itineraries_by_plan_alt(
 
 
 @router.get(
-    "/travel-plans/{travel_plan_id}/itineraries/", response_model=List[ItineraryResponse], summary="获取行程列表"
+    "/travel-plans/{travel_plan_id}/itineraries/", response_model=List[ItineraryResponse], summary="获取行程列表", operation_id="itineraries_by_plan"
 )
 async def get_itineraries_by_plan(
     travel_plan_id: UUID,
@@ -101,7 +101,7 @@ async def get_itineraries_by_plan(
     return itineraries
 
 
-@router.get("/{itinerary_id}", response_model=ItineraryResponse, summary="获取行程详情")
+@router.get("/{itinerary_id}", response_model=ItineraryResponse, summary="获取行程详情", operation_id="itineraries_get")
 async def get_itinerary(
     itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -118,7 +118,7 @@ async def get_itinerary(
     return itinerary
 
 
-@router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程")
+@router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程", operation_id="itineraries_update")
 async def update_itinerary(
     itinerary_id: UUID,
     itinerary_update: ItineraryUpdate,
@@ -146,7 +146,7 @@ async def update_itinerary(
     return itinerary
 
 
-@router.delete("/{itinerary_id}", summary="删除行程")
+@router.delete("/{itinerary_id}", summary="删除行程", operation_id="itineraries_delete")
 async def delete_itinerary(
     itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):

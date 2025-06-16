@@ -21,7 +21,7 @@ from app.schemas.travel_plan import TravelPlanCreate, TravelPlanResponse, Travel
 router = APIRouter()
 
 
-@router.post("/", response_model=TravelPlanResponse, summary="创建旅行计划")
+@router.post("/", response_model=TravelPlanResponse, summary="创建旅行计划", operation_id="travel_plans_create")
 async def create_travel_plan(
     plan_data: TravelPlanCreate,
     current_user: User = Depends(get_current_active_user),
@@ -37,7 +37,7 @@ async def create_travel_plan(
     return db_plan
 
 
-@router.get("/", response_model=List[TravelPlanResponse], summary="获取旅行计划列表")
+@router.get("/", response_model=List[TravelPlanResponse], summary="获取旅行计划列表", operation_id="travel_plans_list")
 async def get_travel_plans(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
@@ -63,7 +63,7 @@ async def get_travel_plans(
     return plans
 
 
-@router.get("/{plan_id}", response_model=TravelPlanResponse, summary="获取旅行计划详情")
+@router.get("/{plan_id}", response_model=TravelPlanResponse, summary="获取旅行计划详情", operation_id="travel_plans_get")
 async def get_travel_plan(
     plan_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -78,7 +78,7 @@ async def get_travel_plan(
     return plan
 
 
-@router.put("/{plan_id}", response_model=TravelPlanResponse, summary="更新旅行计划")
+@router.put("/{plan_id}", response_model=TravelPlanResponse, summary="更新旅行计划", operation_id="travel_plans_update")
 async def update_travel_plan(
     plan_id: UUID,
     plan_update: TravelPlanUpdate,
@@ -104,7 +104,7 @@ async def update_travel_plan(
     return plan
 
 
-@router.delete("/{plan_id}", summary="删除旅行计划")
+@router.delete("/{plan_id}", summary="删除旅行计划", operation_id="travel_plans_delete")
 async def delete_travel_plan(
     plan_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -123,7 +123,7 @@ async def delete_travel_plan(
 
 
 # 费用相关的子路由
-@router.post("/{plan_id}/expenses/", response_model=ExpenseResponse, summary="创建费用记录")
+@router.post("/{plan_id}/expenses/", response_model=ExpenseResponse, summary="创建费用记录", operation_id="travel_plans_create_expense")
 async def create_expense_for_plan(
     plan_id: UUID,
     expense_data: ExpenseCreate,
@@ -152,7 +152,7 @@ async def create_expense_for_plan(
     return db_expense
 
 
-@router.get("/{plan_id}/expenses/", response_model=List[ExpenseResponse], summary="获取旅行计划的费用记录")
+@router.get("/{plan_id}/expenses/", response_model=List[ExpenseResponse], summary="获取旅行计划的费用记录", operation_id="travel_plans_expenses_list")
 async def get_expenses_for_plan(
     plan_id: UUID,
     skip: int = Query(0, ge=0),
@@ -184,7 +184,7 @@ async def get_expenses_for_plan(
     return expenses
 
 
-@router.get("/{plan_id}/expenses/statistics", summary="获取旅行计划的费用统计")
+@router.get("/{plan_id}/expenses/statistics", summary="获取旅行计划的费用统计", operation_id="travel_plans_expenses_statistics")
 async def get_expense_statistics_for_plan(
     plan_id: UUID,
     current_user: User = Depends(get_current_active_user),

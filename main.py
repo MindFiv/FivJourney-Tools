@@ -3,6 +3,7 @@ from contextlib import asynccontextmanager
 import uvicorn
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi_mcp import FastApiMCP
 
 from app.api.v1.router import api_router
 from app.core.config import settings
@@ -45,6 +46,14 @@ async def root():
 @app.get("/health")
 async def health_check():
     return {"status": "healthy"}
+
+
+mcp = FastApiMCP(
+    app,
+    describe_full_response_schema=True,
+    describe_all_responses=True,
+)
+mcp.mount(mount_path="/sse")
 
 
 if __name__ == "__main__":

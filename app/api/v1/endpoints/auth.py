@@ -11,7 +11,7 @@ from app.schemas.user import Token, UserCreate, UserLogin, UserResponse
 router = APIRouter()
 
 
-@router.post("/register", response_model=UserResponse, summary="用户注册")
+@router.post("/register", response_model=UserResponse, summary="用户注册", operation_id="auth_register")
 async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     """用户注册"""
     # 检查用户名是否已存在
@@ -42,7 +42,7 @@ async def register(user_data: UserCreate, db: AsyncSession = Depends(get_db)):
     return db_user
 
 
-@router.post("/login", response_model=Token, summary="用户登录")
+@router.post("/login", response_model=Token, summary="用户登录", operation_id="auth_login")
 async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSession = Depends(get_db)):
     """用户登录"""
     # 查找用户
@@ -65,7 +65,7 @@ async def login(form_data: OAuth2PasswordRequestForm = Depends(), db: AsyncSessi
     return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 
-@router.post("/login-json", response_model=Token, summary="JSON格式用户登录")
+@router.post("/login-json", response_model=Token, summary="JSON格式用户登录", operation_id="auth_login_json")
 async def login_json(user_data: UserLogin, db: AsyncSession = Depends(get_db)):
     """JSON格式用户登录（用于非文档界面的API调用）"""
     # 查找用户

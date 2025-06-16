@@ -13,13 +13,13 @@ from app.schemas.user import UserResponse, UserUpdate
 router = APIRouter()
 
 
-@router.get("/me", response_model=UserResponse, summary="获取当前用户信息")
+@router.get("/me", response_model=UserResponse, summary="获取当前用户信息", operation_id="users_me_get")
 async def get_current_user_info(current_user: User = Depends(get_current_active_user)):
     """获取当前用户信息"""
     return current_user
 
 
-@router.put("/me", response_model=UserResponse, summary="更新当前用户信息")
+@router.put("/me", response_model=UserResponse, summary="更新当前用户信息", operation_id="users_me_put")
 async def update_current_user(
     user_update: UserUpdate, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -41,7 +41,7 @@ async def update_current_user(
     return current_user
 
 
-@router.get("/{user_id}", response_model=UserResponse, summary="获取用户信息")
+@router.get("/{user_id}", response_model=UserResponse, summary="获取用户信息", operation_id="users_get")
 async def get_user(
     user_id: UUID, db: AsyncSession = Depends(get_db), current_user: User = Depends(get_current_active_user)
 ):

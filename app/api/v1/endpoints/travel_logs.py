@@ -17,7 +17,7 @@ from app.schemas.travel_log import TravelLogCreate, TravelLogResponse, TravelLog
 router = APIRouter()
 
 
-@router.post("/", response_model=TravelLogResponse, summary="创建旅行日志")
+@router.post("/", response_model=TravelLogResponse, summary="创建旅行日志", operation_id="travel_logs_create")
 async def create_travel_log(
     log_data: TravelLogCreate, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -43,7 +43,7 @@ async def create_travel_log(
     return db_log
 
 
-@router.get("/", response_model=List[TravelLogResponse], summary="获取旅行日志列表")
+@router.get("/", response_model=List[TravelLogResponse], summary="获取旅行日志列表", operation_id="travel_logs_list")
 async def get_travel_logs(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
@@ -69,7 +69,7 @@ async def get_travel_logs(
     return logs
 
 
-@router.get("/my", response_model=List[TravelLogResponse], summary="获取我的旅行日志")
+@router.get("/my", response_model=List[TravelLogResponse], summary="获取我的旅行日志", operation_id="travel_logs_my")
 async def get_my_travel_logs(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
@@ -91,7 +91,7 @@ async def get_my_travel_logs(
     return logs
 
 
-@router.get("/{log_id}", response_model=TravelLogResponse, summary="获取旅行日志详情")
+@router.get("/{log_id}", response_model=TravelLogResponse, summary="获取旅行日志详情", operation_id="travel_logs_get")
 async def get_travel_log(
     log_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -108,7 +108,7 @@ async def get_travel_log(
     return log
 
 
-@router.put("/{log_id}", response_model=TravelLogResponse, summary="更新旅行日志")
+@router.put("/{log_id}", response_model=TravelLogResponse, summary="更新旅行日志", operation_id="travel_logs_update")
 async def update_travel_log(
     log_id: UUID,
     log_update: TravelLogUpdate,
@@ -134,7 +134,7 @@ async def update_travel_log(
     return log
 
 
-@router.delete("/{log_id}", summary="删除旅行日志")
+@router.delete("/{log_id}", summary="删除旅行日志", operation_id="travel_logs_delete")
 async def delete_travel_log(
     log_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -152,7 +152,7 @@ async def delete_travel_log(
     return {"message": "旅行日志已删除"}
 
 
-@router.get("/public/latest", response_model=List[TravelLogResponse], summary="获取最新公开日志")
+@router.get("/public/latest", response_model=List[TravelLogResponse], summary="获取最新公开日志", operation_id="travel_logs_public_latest")
 async def get_latest_public_logs(
     limit: int = Query(10, ge=1, le=50, description="返回的记录数"), db: AsyncSession = Depends(get_db)
 ):

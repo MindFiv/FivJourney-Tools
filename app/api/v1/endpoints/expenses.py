@@ -18,7 +18,7 @@ from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 router = APIRouter()
 
 
-@router.post("/", response_model=ExpenseResponse, summary="创建费用记录")
+@router.post("/", response_model=ExpenseResponse, summary="创建费用记录", operation_id="expenses_create")
 async def create_expense(
     expense_data: ExpenseCreate,
     current_user: User = Depends(get_current_active_user),
@@ -34,7 +34,7 @@ async def create_expense(
     return db_expense
 
 
-@router.get("/", response_model=List[ExpenseResponse], summary="获取费用记录列表")
+@router.get("/", response_model=List[ExpenseResponse], summary="获取费用记录列表", operation_id="expenses_list")
 async def get_expenses(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
@@ -60,7 +60,7 @@ async def get_expenses(
     return expenses
 
 
-@router.get("/statistics", summary="获取费用统计")
+@router.get("/statistics", summary="获取费用统计", operation_id="expenses_statistics")
 async def get_expense_statistics(
     travel_plan_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_active_user),
@@ -95,7 +95,7 @@ async def get_expense_statistics(
     }
 
 
-@router.get("/{expense_id}", response_model=ExpenseResponse, summary="获取费用记录详情")
+@router.get("/{expense_id}", response_model=ExpenseResponse, summary="获取费用记录详情", operation_id="expenses_get")
 async def get_expense(
     expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
@@ -109,7 +109,7 @@ async def get_expense(
     return expense
 
 
-@router.put("/{expense_id}", response_model=ExpenseResponse, summary="更新费用记录")
+@router.put("/{expense_id}", response_model=ExpenseResponse, summary="更新费用记录", operation_id="expenses_update")
 async def update_expense(
     expense_id: UUID,
     expense_update: ExpenseUpdate,
@@ -133,7 +133,7 @@ async def update_expense(
     return expense
 
 
-@router.delete("/{expense_id}", summary="删除费用记录")
+@router.delete("/{expense_id}", summary="删除费用记录", operation_id="expenses_delete")
 async def delete_expense(
     expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
 ):
