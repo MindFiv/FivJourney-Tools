@@ -5,7 +5,11 @@ import pytest
 import pytest_asyncio
 from fastapi.testclient import TestClient
 from httpx import AsyncClient
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 
 from app.core.database import Base, get_db
 from app.core.security import create_access_token, get_password_hash
@@ -16,7 +20,9 @@ from main import app
 # 测试数据库引擎
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 test_engine = create_async_engine(TEST_DATABASE_URL, echo=False)
-TestAsyncSessionLocal = async_sessionmaker(bind=test_engine, class_=AsyncSession, expire_on_commit=False)
+TestAsyncSessionLocal = async_sessionmaker(
+    bind=test_engine, class_=AsyncSession, expire_on_commit=False
+)
 
 
 @pytest.fixture(scope="session")
@@ -53,7 +59,9 @@ def client(test_db: AsyncSession) -> Generator[TestClient, None, None]:
 
 
 @pytest_asyncio.fixture
-async def async_client(test_db: AsyncSession) -> AsyncGenerator[AsyncClient, None]:
+async def async_client(
+    test_db: AsyncSession,
+) -> AsyncGenerator[AsyncClient, None]:
     """创建异步测试客户端"""
 
     def override_get_db():
@@ -120,7 +128,9 @@ def auth_headers(test_user_token: str) -> dict:
 
 
 @pytest_asyncio.fixture
-async def test_travel_plan(test_db: AsyncSession, test_user: User) -> TravelPlan:
+async def test_travel_plan(
+    test_db: AsyncSession, test_user: User
+) -> TravelPlan:
     """创建测试旅行计划"""
     from datetime import date, timedelta
 
@@ -221,7 +231,9 @@ def sample_travel_log_data() -> dict:
 
 
 @pytest_asyncio.fixture
-async def test_expense(test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+async def test_expense(
+    test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+):
     """创建测试费用记录"""
     from datetime import datetime, timedelta
     from decimal import Decimal

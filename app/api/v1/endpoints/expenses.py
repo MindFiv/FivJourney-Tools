@@ -18,7 +18,12 @@ from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 router = APIRouter()
 
 
-@router.post("/", response_model=ExpenseResponse, summary="创建费用记录", operation_id="expenses_create")
+@router.post(
+    "/",
+    response_model=ExpenseResponse,
+    summary="创建费用记录",
+    operation_id="expenses_create",
+)
 async def create_expense(
     expense_data: ExpenseCreate,
     current_user: User = Depends(get_current_active_user),
@@ -34,7 +39,12 @@ async def create_expense(
     return db_expense
 
 
-@router.get("/", response_model=List[ExpenseResponse], summary="获取费用记录列表", operation_id="expenses_list")
+@router.get(
+    "/",
+    response_model=List[ExpenseResponse],
+    summary="获取费用记录列表",
+    operation_id="expenses_list",
+)
 async def get_expenses(
     skip: int = Query(0, ge=0),
     limit: int = Query(10, ge=1, le=100),
@@ -52,7 +62,9 @@ async def get_expenses(
     if travel_plan_id is not None:
         query = query.where(Expense.travel_plan_id == travel_plan_id)
 
-    query = query.offset(skip).limit(limit).order_by(Expense.expense_date.desc())
+    query = (
+        query.offset(skip).limit(limit).order_by(Expense.expense_date.desc())
+    )
 
     result = await db.execute(query)
     expenses = result.scalars().all()
@@ -60,7 +72,9 @@ async def get_expenses(
     return expenses
 
 
-@router.get("/statistics", summary="获取费用统计", operation_id="expenses_statistics")
+@router.get(
+    "/statistics", summary="获取费用统计", operation_id="expenses_statistics"
+)
 async def get_expense_statistics(
     travel_plan_id: Optional[UUID] = None,
     current_user: User = Depends(get_current_active_user),
@@ -68,7 +82,9 @@ async def get_expense_statistics(
 ):
     """获取费用统计信息"""
     query = select(
-        Expense.category, func.sum(Expense.amount).label("total_amount"), func.count(Expense.id).label("count")
+        Expense.category,
+        func.sum(Expense.amount).label("total_amount"),
+        func.count(Expense.id).label("count"),
     ).where(Expense.user_id == current_user.id)
 
     if travel_plan_id is not None:
@@ -80,9 +96,13 @@ async def get_expense_statistics(
     statistics = result.all()
 
     # 计算总金额
-    total_query = select(func.sum(Expense.amount)).where(Expense.user_id == current_user.id)
+    total_query = select(func.sum(Expense.amount)).where(
+        Expense.user_id == current_user.id
+    )
     if travel_plan_id is not None:
-        total_query = total_query.where(Expense.travel_plan_id == travel_plan_id)
+        total_query = total_query.where(
+            Expense.travel_plan_id == travel_plan_id
+        )
 
     total_result = await db.execute(total_query)
     total_amount = total_result.scalar() or Decimal("0")
@@ -90,26 +110,49 @@ async def get_expense_statistics(
     return {
         "total_amount": total_amount,
         "by_category": [
-            {"category": stat.category, "amount": stat.total_amount, "count": stat.count} for stat in statistics
+            {
+                "category": stat.category,
+                "amount": stat.total_amount,
+                "count": stat.count,
+            }
+            for stat in statistics
         ],
     }
 
 
-@router.get("/{expense_id}", response_model=ExpenseResponse, summary="获取费用记录详情", operation_id="expenses_get")
+@router.get(
+    "/{expense_id}",
+    response_model=ExpenseResponse,
+    summary="获取费用记录详情",
+    operation_id="expenses_get",
+)
 async def get_expense(
-    expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    expense_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """获取指定费用记录的详情"""
-    result = await db.execute(select(Expense).where(and_(Expense.id == expense_id, Expense.user_id == current_user.id)))
+    result = await db.execute(
+        select(Expense).where(
+            and_(Expense.id == expense_id, Expense.user_id == current_user.id)
+        )
+    )
     expense = result.scalar_one_or_none()
 
     if not expense:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在"
+        )
 
     return expense
 
 
-@router.put("/{expense_id}", response_model=ExpenseResponse, summary="更新费用记录", operation_id="expenses_update")
+@router.put(
+    "/{expense_id}",
+    response_model=ExpenseResponse,
+    summary="更新费用记录",
+    operation_id="expenses_update",
+)
 async def update_expense(
     expense_id: UUID,
     expense_update: ExpenseUpdate,
@@ -117,11 +160,17 @@ async def update_expense(
     db: AsyncSession = Depends(get_db),
 ):
     """更新费用记录"""
-    result = await db.execute(select(Expense).where(and_(Expense.id == expense_id, Expense.user_id == current_user.id)))
+    result = await db.execute(
+        select(Expense).where(
+            and_(Expense.id == expense_id, Expense.user_id == current_user.id)
+        )
+    )
     expense = result.scalar_one_or_none()
 
     if not expense:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在"
+        )
 
     update_data = expense_update.model_dump(exclude_unset=True)
     for field, value in update_data.items():
@@ -133,16 +182,26 @@ async def update_expense(
     return expense
 
 
-@router.delete("/{expense_id}", summary="删除费用记录", operation_id="expenses_delete")
+@router.delete(
+    "/{expense_id}", summary="删除费用记录", operation_id="expenses_delete"
+)
 async def delete_expense(
-    expense_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    expense_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """删除费用记录"""
-    result = await db.execute(select(Expense).where(and_(Expense.id == expense_id, Expense.user_id == current_user.id)))
+    result = await db.execute(
+        select(Expense).where(
+            and_(Expense.id == expense_id, Expense.user_id == current_user.id)
+        )
+    )
     expense = result.scalar_one_or_none()
 
     if not expense:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="费用记录不存在"
+        )
 
     await db.delete(expense)
     await db.commit()

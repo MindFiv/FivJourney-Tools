@@ -9,7 +9,9 @@ from app.models.user import User
 class TestAuth:
     """认证相关测试"""
 
-    def test_register_success(self, client: TestClient, sample_user_data: dict):
+    def test_register_success(
+        self, client: TestClient, sample_user_data: dict
+    ):
         """测试用户注册成功"""
         response = client.post("/api/v1/auth/register", json=sample_user_data)
 
@@ -22,7 +24,9 @@ class TestAuth:
         assert "id" in data
         assert data["is_active"] is True
 
-    def test_register_duplicate_username(self, client: TestClient, test_user: User, sample_user_data: dict):
+    def test_register_duplicate_username(
+        self, client: TestClient, test_user: User, sample_user_data: dict
+    ):
         """测试注册重复用户名"""
         sample_user_data["username"] = test_user.username
         response = client.post("/api/v1/auth/register", json=sample_user_data)
@@ -30,7 +34,9 @@ class TestAuth:
         assert response.status_code == status.HTTP_400_BAD_REQUEST
         assert "用户名已存在" in response.json()["detail"]
 
-    def test_register_duplicate_email(self, client: TestClient, test_user: User, sample_user_data: dict):
+    def test_register_duplicate_email(
+        self, client: TestClient, test_user: User, sample_user_data: dict
+    ):
         """测试注册重复邮箱"""
         sample_user_data["email"] = test_user.email
         response = client.post("/api/v1/auth/register", json=sample_user_data)
@@ -51,7 +57,10 @@ class TestAuth:
 
     def test_login_success(self, client: TestClient, test_user: User):
         """测试用户登录成功"""
-        login_data = {"username": test_user.username, "password": "testpassword123"}
+        login_data = {
+            "username": test_user.username,
+            "password": "testpassword123",
+        }
         response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_200_OK
@@ -71,15 +80,23 @@ class TestAuth:
 
     def test_login_invalid_password(self, client: TestClient, test_user: User):
         """测试登录无效密码"""
-        login_data = {"username": test_user.username, "password": "wrongpassword"}
+        login_data = {
+            "username": test_user.username,
+            "password": "wrongpassword",
+        }
         response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
         assert "用户名或密码错误" in response.json()["detail"]
 
-    def test_login_inactive_user(self, client: TestClient, test_inactive_user: User):
+    def test_login_inactive_user(
+        self, client: TestClient, test_inactive_user: User
+    ):
         """测试登录非活跃用户"""
-        login_data = {"username": test_inactive_user.username, "password": "testpassword123"}
+        login_data = {
+            "username": test_inactive_user.username,
+            "password": "testpassword123",
+        }
         response = client.post("/api/v1/auth/login-json", json=login_data)
 
         assert response.status_code == status.HTTP_400_BAD_REQUEST
@@ -127,7 +144,9 @@ class TestTokenSecurity:
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_protected_endpoint_valid_token(self, client: TestClient, auth_headers: dict):
+    def test_protected_endpoint_valid_token(
+        self, client: TestClient, auth_headers: dict
+    ):
         """测试使用有效token访问受保护端点"""
         response = client.get("/api/v1/users/me", headers=auth_headers)
 
@@ -145,7 +164,9 @@ class TestPasswordValidation:
             "   ",  # 空白字符
         ],
     )
-    def test_weak_passwords(self, client: TestClient, sample_user_data: dict, password: str):
+    def test_weak_passwords(
+        self, client: TestClient, sample_user_data: dict, password: str
+    ):
         """测试弱密码"""
         sample_user_data["password"] = password
         response = client.post("/api/v1/auth/register", json=sample_user_data)
@@ -160,11 +181,15 @@ class TestPasswordValidation:
             "test_password_123",
         ],
     )
-    def test_strong_passwords(self, client: TestClient, sample_user_data: dict, password: str):
+    def test_strong_passwords(
+        self, client: TestClient, sample_user_data: dict, password: str
+    ):
         """测试强密码"""
         sample_user_data["password"] = password
         sample_user_data["username"] = f"user_{password[:5]}"  # 避免重复用户名
-        sample_user_data["email"] = f"{password[:5]}@example.com"  # 避免重复邮箱
+        sample_user_data["email"] = (
+            f"{password[:5]}@example.com"  # 避免重复邮箱
+        )
         response = client.post("/api/v1/auth/register", json=sample_user_data)
 
         assert response.status_code == status.HTTP_200_OK
@@ -173,15 +198,24 @@ class TestPasswordValidation:
 class TestAuthIntegration:
     """认证集成测试"""
 
-    def test_register_and_login_flow(self, client: TestClient, sample_user_data: dict):
+    def test_register_and_login_flow(
+        self, client: TestClient, sample_user_data: dict
+    ):
         """测试注册和登录完整流程"""
         # 1. 注册用户
-        register_response = client.post("/api/v1/auth/register", json=sample_user_data)
+        register_response = client.post(
+            "/api/v1/auth/register", json=sample_user_data
+        )
         assert register_response.status_code == status.HTTP_200_OK
 
         # 2. 登录用户
-        login_data = {"username": sample_user_data["username"], "password": sample_user_data["password"]}
-        login_response = client.post("/api/v1/auth/login-json", json=login_data)
+        login_data = {
+            "username": sample_user_data["username"],
+            "password": sample_user_data["password"],
+        }
+        login_response = client.post(
+            "/api/v1/auth/login-json", json=login_data
+        )
         assert login_response.status_code == status.HTTP_200_OK
 
         # 3. 使用token访问受保护端点

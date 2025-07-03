@@ -1,6 +1,17 @@
 import uuid
 
-from sqlalchemy import Column, Date, DateTime, Enum, ForeignKey, Integer, Numeric, String, Text, Time
+from sqlalchemy import (
+    Column,
+    Date,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Integer,
+    Numeric,
+    String,
+    Text,
+    Time,
+)
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 
@@ -35,7 +46,9 @@ class Itinerary(Base):
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())
-    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+    updated_at = Column(
+        DateTime(timezone=True), default=func.now(), onupdate=func.now()
+    )
 
     # 关联关系
     travel_plan = relationship("TravelPlan", back_populates="itineraries")

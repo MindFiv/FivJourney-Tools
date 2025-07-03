@@ -13,12 +13,21 @@ from app.models.enums import ActivityType
 from app.models.itinerary import Itinerary
 from app.models.travel_plan import TravelPlan
 from app.models.user import User
-from app.schemas.itinerary import ItineraryCreate, ItineraryResponse, ItineraryUpdate
+from app.schemas.itinerary import (
+    ItineraryCreate,
+    ItineraryResponse,
+    ItineraryUpdate,
+)
 
 router = APIRouter()
 
 
-@router.post("/", response_model=ItineraryResponse, summary="创建行程", operation_id="itineraries_create")
+@router.post(
+    "/",
+    response_model=ItineraryResponse,
+    summary="创建行程",
+    operation_id="itineraries_create",
+)
 async def create_itinerary(
     itinerary_data: ItineraryCreate,
     current_user: User = Depends(get_current_active_user),
@@ -28,12 +37,17 @@ async def create_itinerary(
     # 验证旅行计划存在且属于当前用户
     result = await db.execute(
         select(TravelPlan).where(
-            and_(TravelPlan.id == itinerary_data.travel_plan_id, TravelPlan.owner_id == current_user.id)
+            and_(
+                TravelPlan.id == itinerary_data.travel_plan_id,
+                TravelPlan.owner_id == current_user.id,
+            )
         )
     )
     travel_plan = result.scalar_one_or_none()
     if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在"
+        )
 
     # 创建行程
     db_itinerary = Itinerary(**itinerary_data.model_dump())
@@ -45,7 +59,12 @@ async def create_itinerary(
     return db_itinerary
 
 
-@router.get("/travel-plan/{travel_plan_id}", response_model=List[ItineraryResponse], summary="获取行程列表（兼容路径）", operation_id="itineraries_by_plan_alt")
+@router.get(
+    "/travel-plan/{travel_plan_id}",
+    response_model=List[ItineraryResponse],
+    summary="获取行程列表（兼容路径）",
+    operation_id="itineraries_by_plan_alt",
+)
 async def get_itineraries_by_plan_alt(
     travel_plan_id: UUID,
     skip: int = Query(0, ge=0, description="跳过的记录数"),
@@ -56,11 +75,22 @@ async def get_itineraries_by_plan_alt(
     db: AsyncSession = Depends(get_db),
 ):
     """获取指定旅行计划的行程列表（兼容路径）"""
-    return await get_itineraries_by_plan(travel_plan_id, skip, limit, day_number, activity_type, current_user, db)
+    return await get_itineraries_by_plan(
+        travel_plan_id,
+        skip,
+        limit,
+        day_number,
+        activity_type,
+        current_user,
+        db,
+    )
 
 
 @router.get(
-    "/travel-plans/{travel_plan_id}/itineraries/", response_model=List[ItineraryResponse], summary="获取行程列表", operation_id="itineraries_by_plan"
+    "/travel-plans/{travel_plan_id}/itineraries/",
+    response_model=List[ItineraryResponse],
+    summary="获取行程列表",
+    operation_id="itineraries_by_plan",
 )
 async def get_itineraries_by_plan(
     travel_plan_id: UUID,
@@ -74,11 +104,18 @@ async def get_itineraries_by_plan(
     """获取指定旅行计划的行程列表"""
     # 验证旅行计划存在且属于当前用户
     result = await db.execute(
-        select(TravelPlan).where(and_(TravelPlan.id == travel_plan_id, TravelPlan.owner_id == current_user.id))
+        select(TravelPlan).where(
+            and_(
+                TravelPlan.id == travel_plan_id,
+                TravelPlan.owner_id == current_user.id,
+            )
+        )
     )
     travel_plan = result.scalar_one_or_none()
     if not travel_plan:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在"
+        )
 
     query = select(Itinerary).where(Itinerary.travel_plan_id == travel_plan_id)
 
@@ -93,7 +130,11 @@ async def get_itineraries_by_plan(
             # 无效的活动类型，返回空结果
             return []
 
-    query = query.order_by(asc(Itinerary.day_number), asc(Itinerary.start_time)).offset(skip).limit(limit)
+    query = (
+        query.order_by(asc(Itinerary.day_number), asc(Itinerary.start_time))
+        .offset(skip)
+        .limit(limit)
+    )
 
     result = await db.execute(query)
     itineraries = result.scalars().all()
@@ -101,24 +142,43 @@ async def get_itineraries_by_plan(
     return itineraries
 
 
-@router.get("/{itinerary_id}", response_model=ItineraryResponse, summary="获取行程详情", operation_id="itineraries_get")
+@router.get(
+    "/{itinerary_id}",
+    response_model=ItineraryResponse,
+    summary="获取行程详情",
+    operation_id="itineraries_get",
+)
 async def get_itinerary(
-    itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    itinerary_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """获取行程详情"""
     result = await db.execute(
         select(Itinerary)
         .join(TravelPlan)
-        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+        .where(
+            and_(
+                Itinerary.id == itinerary_id,
+                TravelPlan.owner_id == current_user.id,
+            )
+        )
     )
     itinerary = result.scalar_one_or_none()
     if not itinerary:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在"
+        )
 
     return itinerary
 
 
-@router.put("/{itinerary_id}", response_model=ItineraryResponse, summary="更新行程", operation_id="itineraries_update")
+@router.put(
+    "/{itinerary_id}",
+    response_model=ItineraryResponse,
+    summary="更新行程",
+    operation_id="itineraries_update",
+)
 async def update_itinerary(
     itinerary_id: UUID,
     itinerary_update: ItineraryUpdate,
@@ -129,11 +189,18 @@ async def update_itinerary(
     result = await db.execute(
         select(Itinerary)
         .join(TravelPlan)
-        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+        .where(
+            and_(
+                Itinerary.id == itinerary_id,
+                TravelPlan.owner_id == current_user.id,
+            )
+        )
     )
     itinerary = result.scalar_one_or_none()
     if not itinerary:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在"
+        )
 
     # 更新字段
     update_data = itinerary_update.model_dump(exclude_unset=True)
@@ -146,19 +213,30 @@ async def update_itinerary(
     return itinerary
 
 
-@router.delete("/{itinerary_id}", summary="删除行程", operation_id="itineraries_delete")
+@router.delete(
+    "/{itinerary_id}", summary="删除行程", operation_id="itineraries_delete"
+)
 async def delete_itinerary(
-    itinerary_id: UUID, current_user: User = Depends(get_current_active_user), db: AsyncSession = Depends(get_db)
+    itinerary_id: UUID,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
 ):
     """删除行程"""
     result = await db.execute(
         select(Itinerary)
         .join(TravelPlan)
-        .where(and_(Itinerary.id == itinerary_id, TravelPlan.owner_id == current_user.id))
+        .where(
+            and_(
+                Itinerary.id == itinerary_id,
+                TravelPlan.owner_id == current_user.id,
+            )
+        )
     )
     itinerary = result.scalar_one_or_none()
     if not itinerary:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在")
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="行程不存在"
+        )
 
     await db.delete(itinerary)
     await db.commit()

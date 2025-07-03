@@ -29,7 +29,9 @@ class TestUserModel:
         }
 
     @pytest.mark.asyncio
-    async def test_create_user_success(self, test_db: AsyncSession, sample_user_data: dict):
+    async def test_create_user_success(
+        self, test_db: AsyncSession, sample_user_data: dict
+    ):
         """测试创建用户成功"""
         user = User(**sample_user_data)
         test_db.add(user)
@@ -45,7 +47,9 @@ class TestUserModel:
         assert user.updated_at is not None
 
     @pytest.mark.asyncio
-    async def test_user_unique_constraints(self, test_db: AsyncSession, sample_user_data: dict):
+    async def test_user_unique_constraints(
+        self, test_db: AsyncSession, sample_user_data: dict
+    ):
         """测试用户唯一约束"""
         # 创建第一个用户
         user1 = User(**sample_user_data)
@@ -84,7 +88,11 @@ class TestUserModel:
     @pytest.mark.asyncio
     async def test_user_optional_fields(self, test_db: AsyncSession):
         """测试用户可选字段"""
-        user = User(username="minimal_user", email="minimal@example.com", hashed_password="password")
+        user = User(
+            username="minimal_user",
+            email="minimal@example.com",
+            hashed_password="password",
+        )
         test_db.add(user)
         await test_db.commit()
         await test_db.refresh(user)
@@ -95,7 +103,9 @@ class TestUserModel:
         assert user.avatar is None
 
     @pytest.mark.asyncio
-    async def test_user_timestamps(self, test_db: AsyncSession, sample_user_data: dict):
+    async def test_user_timestamps(
+        self, test_db: AsyncSession, sample_user_data: dict
+    ):
         """测试用户时间戳"""
         user = User(**sample_user_data)
         test_db.add(user)
@@ -127,7 +137,9 @@ class TestTravelPlanModel:
     """旅行计划模型测试"""
 
     @pytest.mark.asyncio
-    async def test_create_travel_plan_success(self, test_db: AsyncSession, test_user: User):
+    async def test_create_travel_plan_success(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试创建旅行计划成功"""
         plan_data = {
             "title": "测试旅行计划",
@@ -150,7 +162,9 @@ class TestTravelPlanModel:
         assert plan.created_at is not None
 
     @pytest.mark.asyncio
-    async def test_travel_plan_status_enum(self, test_db: AsyncSession, test_user: User):
+    async def test_travel_plan_status_enum(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试旅行计划状态枚举"""
         plan = TravelPlan(
             title="状态测试计划",
@@ -168,7 +182,9 @@ class TestTravelPlanModel:
         assert plan.status == TravelStatus.CONFIRMED
 
     @pytest.mark.asyncio
-    async def test_travel_plan_foreign_key(self, test_db: AsyncSession, test_user: User):
+    async def test_travel_plan_foreign_key(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试旅行计划外键关系"""
         plan = TravelPlan(
             title="外键测试计划",
@@ -188,7 +204,9 @@ class TestTravelPlanModel:
         assert plan.owner.id == test_user.id
 
     @pytest.mark.asyncio
-    async def test_travel_plan_required_fields(self, test_db: AsyncSession, test_user: User):
+    async def test_travel_plan_required_fields(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试旅行计划必填字段"""
         with pytest.raises((IntegrityError, TypeError)):
             plan = TravelPlan(
@@ -202,7 +220,9 @@ class TestTravelPlanModel:
             await test_db.commit()
 
     @pytest.mark.asyncio
-    async def test_travel_plan_cascade_delete(self, test_db: AsyncSession, test_user: User):
+    async def test_travel_plan_cascade_delete(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试旅行计划级联删除"""
         # 创建旅行计划
         plan = TravelPlan(
@@ -218,7 +238,11 @@ class TestTravelPlanModel:
 
         # 创建关联的行程
         itinerary = Itinerary(
-            day_number=1, date=date.today(), location="测试地点", activity="测试活动", travel_plan_id=plan.id
+            day_number=1,
+            date=date.today(),
+            location="测试地点",
+            activity="测试活动",
+            travel_plan_id=plan.id,
         )
         test_db.add(itinerary)
         await test_db.commit()
@@ -230,7 +254,9 @@ class TestTravelPlanModel:
         # 验证关联的行程也被删除
         from sqlalchemy import select
 
-        result = await test_db.execute(select(Itinerary).where(Itinerary.travel_plan_id == plan.id))
+        result = await test_db.execute(
+            select(Itinerary).where(Itinerary.travel_plan_id == plan.id)
+        )
         assert result.scalar_one_or_none() is None
 
 
@@ -238,7 +264,12 @@ class TestExpenseModel:
     """费用模型测试"""
 
     @pytest.mark.asyncio
-    async def test_create_expense_success(self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+    async def test_create_expense_success(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
+    ):
         """测试创建费用记录成功"""
         expense_data = {
             "title": "测试费用",
@@ -261,7 +292,12 @@ class TestExpenseModel:
         assert expense.category == ExpenseCategory.TRANSPORTATION
 
     @pytest.mark.asyncio
-    async def test_expense_category_enum(self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+    async def test_expense_category_enum(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
+    ):
         """测试费用类别枚举"""
         for category in ExpenseCategory:
             expense = Expense(
@@ -278,7 +314,10 @@ class TestExpenseModel:
 
     @pytest.mark.asyncio
     async def test_expense_decimal_precision(
-        self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
     ):
         """测试费用金额精度"""
         expense = Expense(
@@ -297,7 +336,12 @@ class TestExpenseModel:
         assert expense.amount == Decimal("123.45")
 
     @pytest.mark.asyncio
-    async def test_expense_foreign_keys(self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+    async def test_expense_foreign_keys(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
+    ):
         """测试费用外键关系"""
         expense = Expense(
             title="外键测试",
@@ -321,7 +365,9 @@ class TestItineraryModel:
     """行程模型测试"""
 
     @pytest.mark.asyncio
-    async def test_create_itinerary_success(self, test_db: AsyncSession, test_travel_plan: TravelPlan):
+    async def test_create_itinerary_success(
+        self, test_db: AsyncSession, test_travel_plan: TravelPlan
+    ):
         """测试创建行程成功"""
         itinerary_data = {
             "day_number": 1,
@@ -344,7 +390,9 @@ class TestItineraryModel:
         assert itinerary.location == "天安门广场"
 
     @pytest.mark.asyncio
-    async def test_itinerary_time_fields(self, test_db: AsyncSession, test_travel_plan: TravelPlan):
+    async def test_itinerary_time_fields(
+        self, test_db: AsyncSession, test_travel_plan: TravelPlan
+    ):
         """测试行程时间字段"""
         itinerary = Itinerary(
             day_number=1,
@@ -364,7 +412,9 @@ class TestItineraryModel:
         assert itinerary.end_time == time(16, 45)
 
     @pytest.mark.asyncio
-    async def test_itinerary_optional_fields(self, test_db: AsyncSession, test_travel_plan: TravelPlan):
+    async def test_itinerary_optional_fields(
+        self, test_db: AsyncSession, test_travel_plan: TravelPlan
+    ):
         """测试行程可选字段"""
         itinerary = Itinerary(
             day_number=1,
@@ -388,7 +438,10 @@ class TestTravelLogModel:
 
     @pytest.mark.asyncio
     async def test_create_travel_log_success(
-        self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
     ):
         """测试创建旅行日志成功"""
         log_data = {
@@ -414,7 +467,10 @@ class TestTravelLogModel:
 
     @pytest.mark.asyncio
     async def test_travel_log_privacy_levels(
-        self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
     ):
         """测试旅行日志隐私级别"""
         privacy_levels = ["public", "private", "friends"]
@@ -435,7 +491,10 @@ class TestTravelLogModel:
 
     @pytest.mark.asyncio
     async def test_travel_log_optional_fields(
-        self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
     ):
         """测试旅行日志可选字段"""
         log = TravelLog(
@@ -455,7 +514,12 @@ class TestTravelLogModel:
         assert log.is_public == "private"  # 默认值
 
     @pytest.mark.asyncio
-    async def test_travel_log_foreign_keys(self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+    async def test_travel_log_foreign_keys(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
+    ):
         """测试旅行日志外键关系"""
         log = TravelLog(
             title="外键测试",
@@ -477,7 +541,9 @@ class TestModelRelationships:
     """模型关系测试"""
 
     @pytest.mark.asyncio
-    async def test_user_travel_plans_relationship(self, test_db: AsyncSession, test_user: User):
+    async def test_user_travel_plans_relationship(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试用户和旅行计划的关系"""
         # 创建多个旅行计划
         for i in range(3):
@@ -497,7 +563,9 @@ class TestModelRelationships:
         assert len(test_user.travel_plans) >= 3
 
     @pytest.mark.asyncio
-    async def test_travel_plan_itineraries_relationship(self, test_db: AsyncSession, test_travel_plan: TravelPlan):
+    async def test_travel_plan_itineraries_relationship(
+        self, test_db: AsyncSession, test_travel_plan: TravelPlan
+    ):
         """测试旅行计划和行程的关系"""
         # 创建多个行程
         for i in range(3):
@@ -518,7 +586,10 @@ class TestModelRelationships:
 
     @pytest.mark.asyncio
     async def test_user_expenses_relationship(
-        self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
     ):
         """测试用户和费用的关系"""
         # 创建多个费用记录
@@ -544,7 +615,9 @@ class TestModelConstraints:
     """模型约束测试"""
 
     @pytest.mark.asyncio
-    async def test_negative_budget_constraint(self, test_db: AsyncSession, test_user: User):
+    async def test_negative_budget_constraint(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试负预算约束"""
         # 根据实际实现，这可能在应用层验证而不是数据库层
         plan = TravelPlan(
@@ -564,7 +637,9 @@ class TestModelConstraints:
             await test_db.rollback()
 
     @pytest.mark.asyncio
-    async def test_invalid_date_range(self, test_db: AsyncSession, test_user: User):
+    async def test_invalid_date_range(
+        self, test_db: AsyncSession, test_user: User
+    ):
         """测试无效日期范围约束"""
         # 这通常在应用层验证
         plan = TravelPlan(
@@ -580,7 +655,12 @@ class TestModelConstraints:
         await test_db.commit()  # 数据库层可能不会拒绝
 
     @pytest.mark.asyncio
-    async def test_expense_amount_precision(self, test_db: AsyncSession, test_user: User, test_travel_plan: TravelPlan):
+    async def test_expense_amount_precision(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+        test_travel_plan: TravelPlan,
+    ):
         """测试费用金额精度约束"""
         # 测试超过精度的金额
         expense = Expense(
@@ -597,4 +677,7 @@ class TestModelConstraints:
         await test_db.refresh(expense)
 
         # 检查实际存储的精度
-        assert expense.amount in [Decimal("123.46"), Decimal("123.456")]  # 根据数据库设置
+        assert expense.amount in [
+            Decimal("123.46"),
+            Decimal("123.456"),
+        ]  # 根据数据库设置

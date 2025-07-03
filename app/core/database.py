@@ -3,7 +3,11 @@ from typing import AsyncGenerator
 
 from sqlalchemy import String, TypeDecorator
 from sqlalchemy.dialects.postgresql import UUID as PostgreSQLUUID
-from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import declarative_base
 
 from app.core.config import settings
@@ -43,10 +47,14 @@ class GUID(TypeDecorator):
 # 创建异步数据库引擎
 if settings.DATABASE_URL.startswith("sqlite"):
     # SQLite异步连接
-    database_url = settings.DATABASE_URL.replace("sqlite://", "sqlite+aiosqlite://")
+    database_url = settings.DATABASE_URL.replace(
+        "sqlite://", "sqlite+aiosqlite://"
+    )
 elif settings.DATABASE_URL.startswith("postgresql"):
     # PostgreSQL异步连接
-    database_url = settings.DATABASE_URL.replace("postgresql://", "postgresql+asyncpg://")
+    database_url = settings.DATABASE_URL.replace(
+        "postgresql://", "postgresql+asyncpg://"
+    )
 else:
     # 默认使用SQLite
     database_url = "sqlite+aiosqlite:///./travel_tracker.db"
@@ -54,7 +62,9 @@ else:
 engine = create_async_engine(database_url, echo=settings.DEBUG, future=True)
 
 # 创建异步会话制造器
-AsyncSessionLocal = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
+AsyncSessionLocal = async_sessionmaker(
+    bind=engine, class_=AsyncSession, expire_on_commit=False
+)
 
 # 创建基础模型类
 Base = declarative_base()

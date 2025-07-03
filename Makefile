@@ -74,14 +74,14 @@ test-cov:
 # 格式化代码
 format:
 	@echo "🔧 正在格式化代码..."
-	uv run black app/ main.py tests/ --line-length 120
+	uv run black app/ main.py tests/ --line-length 79
 	uv run isort app/ main.py tests/
 	@echo "✅ 代码格式化完成"
 
 # 检查代码格式 (不修改文件)
 format-check:
 	@echo "🔍 检查代码格式..."
-	uv run black app/ main.py tests/ --check --line-length 120
+	uv run black app/ main.py tests/ --check --line-length 79
 	uv run isort app/ main.py tests/ --check-only
 	@echo "✅ 代码格式检查完成"
 

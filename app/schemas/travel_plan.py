@@ -43,7 +43,11 @@ class TravelPlanBase(BaseModel):
     @field_validator("end_date")
     @classmethod
     def validate_dates(cls, v, info):
-        if info.data and "start_date" in info.data and v < info.data["start_date"]:
+        if (
+            info.data
+            and "start_date" in info.data
+            and v < info.data["start_date"]
+        ):
             raise ValueError("结束日期不能早于开始日期")
         return v
 
