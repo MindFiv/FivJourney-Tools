@@ -38,22 +38,54 @@ app.add_middleware(
 app.include_router(api_router, prefix="/api/v1")
 
 
-@app.get("/")
+@app.get("/", tags=["system"])
 async def root():
     return {"message": "FivJourney Tools API", "version": "1.0.0"}
 
 
-@app.get("/health")
+@app.get("/health", tags=["system"])
 async def health_check():
     return {"status": "healthy"}
 
 
-mcp = FastApiMCP(
+# mcp = FastApiMCP(
+#     app,
+#     describe_full_response_schema=True,
+#     describe_all_responses=True,
+# )
+# mcp.mount(mount_path="/sse")
+
+mcp_travel_plan = FastApiMCP(
     app,
     describe_full_response_schema=True,
     describe_all_responses=True,
+    include_tags=["travel-plans"],
 )
-mcp.mount(mount_path="/sse")
+mcp_travel_plan.mount(mount_path="/sse/travel-plans")
+
+mcp_itineraries = FastApiMCP(
+    app,
+    describe_full_response_schema=True,
+    describe_all_responses=True,
+    include_tags=["itineraries"],
+)
+mcp_itineraries.mount(mount_path="/sse/itineraries")
+
+mcp_expenses = FastApiMCP(
+    app,
+    describe_full_response_schema=True,
+    describe_all_responses=True,
+    include_tags=["expenses"],
+)
+mcp_expenses.mount(mount_path="/sse/expenses")
+
+mcp_travel_logs = FastApiMCP(
+    app,
+    describe_full_response_schema=True,
+    describe_all_responses=True,
+    include_tags=["travel-logs"],
+)
+mcp_travel_logs.mount(mount_path="/sse/travel-logs")
 
 
 if __name__ == "__main__":

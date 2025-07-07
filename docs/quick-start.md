@@ -160,7 +160,7 @@ curl -X POST "http://localhost:8000/api/v1/auth/login" \
 
 ### 使用 SQLite (默认)
 
-无需额外配置，系统会自动创建 `travel_tracker.db` 文件。
+无需额外配置，系统会自动创建 `fivjourney_tools.db` 文件。
 
 ### 使用 PostgreSQL (可选)
 

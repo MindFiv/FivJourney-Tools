@@ -57,7 +57,7 @@ elif settings.DATABASE_URL.startswith("postgresql"):
     )
 else:
     # 默认使用SQLite
-    database_url = "sqlite+aiosqlite:///./travel_tracker.db"
+    database_url = "sqlite+aiosqlite:///./fivjourney_tools.db"
 
 engine = create_async_engine(database_url, echo=settings.DEBUG, future=True)
 
