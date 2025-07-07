@@ -56,7 +56,7 @@ alwaysApply: false
 
 ## 数据库管理
 - 使用 SQLite 开发，PostgreSQL 生产
-- 数据库文件：`fivc_journey.db`、`travel_tracker.db`
+- 数据库文件：`fivjourney_tools.db`、`travel_tracker.db`
 - 支持 Alembic 迁移：`make db-migrate`、`make db-upgrade`
 
 ## 工具配置文件

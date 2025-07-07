@@ -19,7 +19,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="FIVC Journey",
+    title="FivJourney Tools",
     description="为用户提供旅游行前、行中、行后的全过程追踪和帮助",
     version="1.0.0",
     lifespan=lifespan,
@@ -40,7 +40,7 @@ app.include_router(api_router, prefix="/api/v1")
 
 @app.get("/")
 async def root():
-    return {"message": "FIVC Journey API", "version": "1.0.0"}
+    return {"message": "FivJourney Tools API", "version": "1.0.0"}
 
 
 @app.get("/health")

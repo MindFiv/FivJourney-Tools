@@ -1,6 +1,6 @@
 # 开发指南
 
-本文档为参与 FIVC Journey 旅游全程追踪系统开发的开发者提供详细的开发指南。
+本文档为参与 FivJourney Tools 旅游全程追踪系统开发的开发者提供详细的开发指南。
 
 ## 👨‍💻 作者
 
@@ -22,7 +22,7 @@
 ```bash
 # 1. 克隆项目
 git clone <repository-url>
-cd fivc-journey
+cd fivjourney-tools
 
 # 2. 安装 uv (如果尚未安装)
 curl -LsSf https://astral.sh/uv/install.sh | sh  # macOS/Linux

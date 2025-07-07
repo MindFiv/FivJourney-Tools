@@ -1,6 +1,6 @@
 # 部署指南
 
-本文档提供 FIVC Journey 旅游全程追踪系统的部署指南，包括本地开发环境、Docker部署和生产环境部署。
+本文档提供 FivJourney Tools 旅游全程追踪系统的部署指南，包括本地开发环境、Docker部署和生产环境部署。
 
 ## 👨‍💻 作者
 
@@ -24,7 +24,7 @@
 ```bash
 # 1. 克隆项目
 git clone <repository-url>
-cd fivc-journey
+cd fivjourney-tools
 
 # 2. 安装uv（如果尚未安装）
 curl -LsSf https://astral.sh/uv/install.sh | sh  # macOS/Linux

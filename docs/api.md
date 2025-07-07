@@ -1,6 +1,6 @@
 # API 接口文档
 
-本文档详细介绍了 FIVC Journey 旅游全程追踪系统的所有API接口。
+本文档详细介绍了 FivJourney Tools 旅游全程追踪系统的所有API接口。
 
 ## 👨‍💻 作者
 

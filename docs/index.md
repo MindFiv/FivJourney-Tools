@@ -1,6 +1,6 @@
-# FIVC Journey 文档
+# FivJourney Tools 文档
 
-欢迎使用 FIVC Journey！这是一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统。
+欢迎使用 FivJourney Tools！这是一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统。
 
 ## 👨‍💻 作者
 

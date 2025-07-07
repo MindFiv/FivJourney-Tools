@@ -162,7 +162,7 @@ class Config:
 数据库配置在 [app/core/database.py](mdc:app/core/database.py)：
 
 ### 开发环境
-- 使用 SQLite：`fivc_journey.db`、`travel_tracker.db`
+- 使用 SQLite：`fivjourney_tools.db`、`travel_tracker.db`
 - 异步支持：`aiosqlite`
 
 ### 生产环境

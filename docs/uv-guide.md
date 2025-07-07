@@ -133,7 +133,7 @@ python = ">=3.10"
 ```bash
 # 1. 克隆项目
 git clone <repository-url>
-cd travel-tracker
+cd fivjourney-tools
 
 # 2. 同步依赖
 uv sync --extra dev

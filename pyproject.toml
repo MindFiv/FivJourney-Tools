@@ -3,16 +3,16 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "fivc-journey"
+name = "fivjourney-tools"
 version = "1.0.0"
-description = "FIVC Journey - 为用户提供旅游行前、行中、行后的全过程追踪和帮助"
+description = "FivJourney Tools - 为用户提供旅游行前、行中、行后的全过程追踪和帮助"
 authors = [
     {name = "Charlie ZHANG", email = "sunnypig2002@gmail.com"},
 ]
 readme = "README.md"
 license = {text = "MIT"}
 requires-python = ">=3.10"
-keywords = ["travel", "tracking", "fastapi", "tourism", "fivc", "journey"]
+keywords = ["travel", "tracking", "fastapi", "tourism", "fivjourney", "tools"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
@@ -86,13 +86,13 @@ lint = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/charliezhang/fivc-journey"
-Documentation = "https://github.com/charliezhang/fivc-journey#readme"
-Repository = "https://github.com/charliezhang/fivc-journey.git"
-Issues = "https://github.com/charliezhang/fivc-journey/issues"
+Homepage = "https://github.com/5C-Plus/fivc-journey"
+Documentation = "https://github.com/5C-Plus/fivc-journey#readme"
+Repository = "https://github.com/5C-Plus/fivc-journey.git"
+Issues = "https://github.com/5C-Plus/fivc-journey/issues"
 
 [project.scripts]
-fivc-journey = "main:app"
+fivjourney-tools = "main:app"
 
 [tool.black]
 line-length = 120

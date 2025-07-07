@@ -6,12 +6,12 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     # 应用基础配置
-    PROJECT_NAME: str = "FIVC Journey"
+    PROJECT_NAME: str = "FivJourney Tools"
     VERSION: str = "1.0.0"
     API_V1_STR: str = "/api/v1"
 
     # 数据库配置
-    DATABASE_URL: str = "sqlite:///./fivc_journey.db"
+    DATABASE_URL: str = "sqlite:///./fivjourney_tools.db"
 
     # 安全配置
     SECRET_KEY: str = "your-secret-key-here-change-this-in-production"

@@ -1,6 +1,6 @@
 # 快速开始指南
 
-本指南将帮助你快速搭建和运行 FIVC Journey 旅游全程追踪系统。
+本指南将帮助你快速搭建和运行 FivJourney Tools 旅游全程追踪系统。
 
 ## 👨‍💻 作者
 
@@ -39,7 +39,7 @@ pip install uv
 
 ```bash
 git clone <repository-url>
-cd fivc-journey
+cd fivjourney-tools
 ```
 
 ### 3. 安装项目依赖

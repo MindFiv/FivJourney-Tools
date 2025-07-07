@@ -1,4 +1,4 @@
-# FIVC Journey
+# FivJourney Tools
 
 > 🎯 一个基于FastAPI和SQLAlchemy的现代化旅游全程追踪后端系统
 
@@ -26,7 +26,7 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # 2. 克隆项目
 git clone <repository-url>
-cd fivc-journey
+cd fivjourney-tools
 
 # 3. 安装依赖
 uv sync --extra dev

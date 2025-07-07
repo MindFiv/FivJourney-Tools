@@ -6,7 +6,7 @@ services:
     ports:
       - "8000:8000"
     environment:
-      - DATABASE_URL=postgresql://fivc_user:fivc_pass@db:5432/fivc_journey
+      - DATABASE_URL=postgresql://fivjourney_user:fivjourney_pass@db:5432/fivjourney_tools
       - SECRET_KEY=dev-secret-key-change-in-production
       - DEBUG=True
     volumes:
@@ -18,9 +18,9 @@ services:
   db:
     image: postgres:15-alpine
     environment:
-      - POSTGRES_DB=fivc_journey
-      - POSTGRES_USER=fivc_user
-      - POSTGRES_PASSWORD=fivc_pass
+      - POSTGRES_DB=fivjourney_tools
+      - POSTGRES_USER=fivjourney_user
+      - POSTGRES_PASSWORD=fivjourney_pass
     volumes:
       - postgres_data:/var/lib/postgresql/data
     ports:

@@ -211,8 +211,8 @@ db-history:
 db-reset:
 	@echo "⚠️  警告：这将删除所有数据！"
 	@read -p "确定要重置数据库吗？(y/N): " confirm && [ "$$confirm" = "y" ]
-	/opt/homebrew/opt/postgresql@16/bin/dropdb fivc_journey --if-exists
-	/opt/homebrew/opt/postgresql@16/bin/createdb fivc_journey
+	/opt/homebrew/opt/postgresql@16/bin/dropdb fivjourney_tools --if-exists
+	/opt/homebrew/opt/postgresql@16/bin/createdb fivjourney_tools
 	uv run alembic upgrade head
 
 # 生产部署

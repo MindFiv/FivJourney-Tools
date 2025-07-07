@@ -1,5 +1,5 @@
 """
-FIVC Journey 测试套件
+FivJourney Tools 测试套件
 
 包含以下测试模块：
 - test_auth.py: 认证相关测试
