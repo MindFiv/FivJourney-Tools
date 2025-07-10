@@ -226,7 +226,6 @@ def sample_travel_log_data() -> dict:
         "log_date": (datetime.now() + timedelta(days=30)).isoformat(),
         "weather": "晴天",
         "mood": "开心",
-        "is_public": "public",
     }
 
 

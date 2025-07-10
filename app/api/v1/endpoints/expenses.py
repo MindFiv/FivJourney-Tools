@@ -1,10 +1,9 @@
 # mypy: disable-error-code="arg-type"
-from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, HTTPException, Path, Query, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -45,22 +44,26 @@ async def create_expense(
     summary="获取费用记录列表",
     operation_id="expenses_list",
 )
-async def get_expenses(
-    skip: int = Query(0, ge=0),
-    limit: int = Query(10, ge=1, le=100),
-    category: Optional[ExpenseCategory] = None,
-    travel_plan_id: Optional[UUID] = None,
+async def list_expenses(
+    travel_plan_id: UUID = Query(..., description="旅行计划ID"),
+    skip: int = Query(0, ge=0, description="跳过的记录数"),
+    limit: int = Query(10, ge=1, le=100, description="返回的记录数"),
+    category: Optional[ExpenseCategory] = Query(
+        None, description="费用类别过滤"
+    ),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
     """获取当前用户的费用记录列表"""
-    query = select(Expense).where(Expense.user_id == current_user.id)
+    query = select(Expense).where(
+        and_(
+            Expense.user_id == current_user.id,
+            Expense.travel_plan_id == travel_plan_id,
+        )
+    )
 
     if category:
         query = query.where(Expense.category == category)
-
-    if travel_plan_id is not None:
-        query = query.where(Expense.travel_plan_id == travel_plan_id)
 
     query = (
         query.offset(skip).limit(limit).order_by(Expense.expense_date.desc())
@@ -76,7 +79,7 @@ async def get_expenses(
     "/statistics", summary="获取费用统计", operation_id="expenses_statistics"
 )
 async def get_expense_statistics(
-    travel_plan_id: Optional[UUID] = None,
+    travel_plan_id: UUID = Query(..., description="旅行计划ID"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -85,10 +88,12 @@ async def get_expense_statistics(
         Expense.category,
         func.sum(Expense.amount).label("total_amount"),
         func.count(Expense.id).label("count"),
-    ).where(Expense.user_id == current_user.id)
-
-    if travel_plan_id is not None:
-        query = query.where(Expense.travel_plan_id == travel_plan_id)
+    ).where(
+        and_(
+            Expense.user_id == current_user.id,
+            Expense.travel_plan_id == travel_plan_id,
+        )
+    )
 
     query = query.group_by(Expense.category)
 
@@ -97,12 +102,11 @@ async def get_expense_statistics(
 
     # 计算总金额
     total_query = select(func.sum(Expense.amount)).where(
-        Expense.user_id == current_user.id
-    )
-    if travel_plan_id is not None:
-        total_query = total_query.where(
-            Expense.travel_plan_id == travel_plan_id
+        and_(
+            Expense.user_id == current_user.id,
+            Expense.travel_plan_id == travel_plan_id,
         )
+    )
 
     total_result = await db.execute(total_query)
     total_amount = total_result.scalar() or Decimal("0")
@@ -127,7 +131,7 @@ async def get_expense_statistics(
     operation_id="expenses_get",
 )
 async def get_expense(
-    expense_id: UUID,
+    expense_id: UUID = Path(..., description="费用记录ID"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -154,8 +158,8 @@ async def get_expense(
     operation_id="expenses_update",
 )
 async def update_expense(
-    expense_id: UUID,
     expense_update: ExpenseUpdate,
+    expense_id: UUID = Path(..., description="费用记录ID"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
@@ -186,7 +190,7 @@ async def update_expense(
     "/{expense_id}", summary="删除费用记录", operation_id="expenses_delete"
 )
 async def delete_expense(
-    expense_id: UUID,
+    expense_id: UUID = Path(..., description="费用记录ID"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):

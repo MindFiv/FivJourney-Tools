@@ -79,15 +79,15 @@ make format
 
 ```bash
 # 构建镜像
-docker build -t travel-tracker .
+docker build -t fivjourney-tools .
 
 # 运行容器
 docker run -d \
-  --name travel-tracker-app \
+  --name fivjourney-tools-app \
   -p 8000:8000 \
   -e DATABASE_URL="sqlite+aiosqlite:///./travel_tracker.db" \
   -e SECRET_KEY="your-secret-key" \
-  travel-tracker
+  fivjourney-tools
 ```
 
 #### Docker Compose部署
@@ -218,7 +218,7 @@ uv run alembic upgrade head
 
 **5. Systemd服务配置**
 
-创建`/etc/systemd/system/travel-tracker.service`：
+创建`/etc/systemd/system/fivjourney-tools.service`：
 
 ```ini
 [Unit]
@@ -247,14 +247,14 @@ WantedBy=multi-user.target
 
 ```bash
 sudo systemctl daemon-reload
-sudo systemctl enable travel-tracker
-sudo systemctl start travel-tracker
-sudo systemctl status travel-tracker
+sudo systemctl enable fivjourney-tools
+sudo systemctl start fivjourney-tools
+sudo systemctl status fivjourney-tools
 ```
 
 **6. Nginx配置**
 
-创建`/etc/nginx/sites-available/travel-tracker`：
+创建`/etc/nginx/sites-available/fivjourney-tools`：
 
 ```nginx
 server {
@@ -322,7 +322,7 @@ server {
 启用站点：
 
 ```bash
-sudo ln -s /etc/nginx/sites-available/travel-tracker /etc/nginx/sites-enabled/
+sudo ln -s /etc/nginx/sites-available/fivjourney-tools /etc/nginx/sites-enabled/
 sudo nginx -t
 sudo systemctl reload nginx
 ```
@@ -351,7 +351,7 @@ sudo crontab -e
 ```yaml
 # task-definition.json
 {
-  "family": "travel-tracker",
+  "family": "fivjourney-tools",
   "networkMode": "awsvpc",
   "requiresCompatibilities": ["FARGATE"],
   "cpu": "512",
@@ -359,8 +359,8 @@ sudo crontab -e
   "executionRoleArn": "arn:aws:iam::account:role/ecsTaskExecutionRole",
   "containerDefinitions": [
     {
-      "name": "travel-tracker",
-      "image": "your-account.dkr.ecr.region.amazonaws.com/travel-tracker:latest",
+      "name": "fivjourney-tools",
+      "image": "your-account.dkr.ecr.region.amazonaws.com/fivjourney-tools:latest",
       "portMappings": [
         {
           "containerPort": 8000,
@@ -376,7 +376,7 @@ sudo crontab -e
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "/ecs/travel-tracker",
+          "awslogs-group": "/ecs/fivjourney-tools",
           "awslogs-region": "us-west-2",
           "awslogs-stream-prefix": "ecs"
         }
@@ -391,7 +391,7 @@ sudo crontab -e
 ```bash
 # 创建RDS PostgreSQL实例
 aws rds create-db-instance \
-    --db-instance-identifier travel-tracker-db \
+    --db-instance-identifier fivjourney-tools-db \
     --db-instance-class db.t3.micro \
     --engine postgres \
     --master-username postgres \
@@ -407,16 +407,16 @@ aws rds create-db-instance \
 # cloudbuild.yaml
 steps:
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['build', '-t', 'gcr.io/$PROJECT_ID/travel-tracker', '.']
+    args: ['build', '-t', 'gcr.io/$PROJECT_ID/fivjourney-tools', '.']
   - name: 'gcr.io/cloud-builders/docker'
-    args: ['push', 'gcr.io/$PROJECT_ID/travel-tracker']
+    args: ['push', 'gcr.io/$PROJECT_ID/fivjourney-tools']
   - name: 'gcr.io/cloud-builders/gcloud'
     args:
       - 'run'
       - 'deploy'
-      - 'travel-tracker'
+      - 'fivjourney-tools'
       - '--image'
-      - 'gcr.io/$PROJECT_ID/travel-tracker'
+      - 'gcr.io/$PROJECT_ID/fivjourney-tools'
       - '--region'
       - 'us-central1'
       - '--platform'
@@ -524,7 +524,7 @@ from fastapi_cache.backends.redis import RedisBackend
 @app.on_event("startup")
 async def startup():
     redis = aioredis.from_url("redis://localhost", encoding="utf8", decode_responses=True)
-    FastAPICache.init(RedisBackend(redis), prefix="travel-tracker")
+    FastAPICache.init(RedisBackend(redis), prefix="fivjourney-tools")
 ```
 
 ## 🔧 故障排除
@@ -548,10 +548,10 @@ sudo journalctl -u postgresql -f
 
 ```bash
 # 检查应用状态
-sudo systemctl status travel-tracker
+sudo systemctl status fivjourney-tools
 
 # 查看错误日志
-sudo journalctl -u travel-tracker -f
+sudo journalctl -u fivjourney-tools -f
 
 # 手动启动测试
 cd /home/travel-app/app

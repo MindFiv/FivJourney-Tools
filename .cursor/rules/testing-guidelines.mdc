@@ -149,7 +149,7 @@ async def test_create_travel_plan_success(async_client, auth_headers):
 ## API 测试模式
 ### 成功场景测试
 ```python
-async def test_get_travel_plans_success(async_client, auth_headers, test_travel_plan):
+async def test_list_travel_plans_success(async_client, auth_headers, test_travel_plan):
     response = await async_client.get(
         "/api/v1/travel-plans/",
         headers=auth_headers

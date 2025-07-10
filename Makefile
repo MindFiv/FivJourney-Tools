@@ -178,7 +178,7 @@ clean:
 
 # Docker相关命令
 docker-build:
-	docker build -t travel-tracker .
+	docker build -t fivjourney-tools .
 
 docker-run:
 	docker-compose up -d

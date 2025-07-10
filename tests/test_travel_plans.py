@@ -100,7 +100,7 @@ class TestTravelPlanCreation:
 class TestTravelPlanQuery:
     """旅行计划查询测试"""
 
-    def test_get_travel_plans_success(
+    def test_list_travel_plans_success(
         self,
         client: TestClient,
         auth_headers: dict,

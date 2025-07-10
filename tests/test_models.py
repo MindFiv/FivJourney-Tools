@@ -451,7 +451,6 @@ class TestTravelLogModel:
             "log_date": datetime.now(),
             "weather": "晴天",
             "mood": "开心",
-            "is_public": "public",
             "author_id": test_user.id,
             "travel_plan_id": test_travel_plan.id,
         }
@@ -463,31 +462,6 @@ class TestTravelLogModel:
 
         assert log.id is not None
         assert log.title == "第一天的旅行"
-        assert log.is_public == "public"
-
-    @pytest.mark.asyncio
-    async def test_travel_log_privacy_levels(
-        self,
-        test_db: AsyncSession,
-        test_user: User,
-        test_travel_plan: TravelPlan,
-    ):
-        """测试旅行日志隐私级别"""
-        privacy_levels = ["public", "private", "friends"]
-
-        for privacy_level in privacy_levels:
-            log = TravelLog(
-                title=f"隐私测试 - {privacy_level}",
-                content="隐私级别测试内容",
-                location="测试地点",
-                log_date=datetime.now(),
-                is_public=privacy_level,
-                author_id=test_user.id,
-                travel_plan_id=test_travel_plan.id,
-            )
-            test_db.add(log)
-
-        await test_db.commit()
 
     @pytest.mark.asyncio
     async def test_travel_log_optional_fields(
@@ -511,7 +485,6 @@ class TestTravelLogModel:
 
         assert log.weather is None
         assert log.mood is None
-        assert log.is_public == "private"  # 默认值
 
     @pytest.mark.asyncio
     async def test_travel_log_foreign_keys(

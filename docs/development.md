@@ -388,7 +388,7 @@ class TestTravelPlans:
         assert data["title"] == "Tokyo Trip"
         assert data["destination"] == "Tokyo, Japan"
 
-    async def test_get_travel_plans(self, async_client: AsyncClient):
+    async def test_list_travel_plans(self, async_client: AsyncClient):
         """测试获取旅行计划列表"""
         # 实现测试逻辑
         pass

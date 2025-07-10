@@ -60,48 +60,29 @@ async def create_itinerary(
 
 
 @router.get(
-    "/travel-plan/{travel_plan_id}",
-    response_model=List[ItineraryResponse],
-    summary="获取行程列表（兼容路径）",
-    operation_id="itineraries_by_plan_alt",
-)
-async def get_itineraries_by_plan_alt(
-    travel_plan_id: UUID,
-    skip: int = Query(0, ge=0, description="跳过的记录数"),
-    limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
-    day_number: Optional[int] = Query(None, description="筛选特定天数"),
-    activity_type: Optional[str] = Query(None, description="活动类型"),
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """获取指定旅行计划的行程列表（兼容路径）"""
-    return await get_itineraries_by_plan(
-        travel_plan_id,
-        skip,
-        limit,
-        day_number,
-        activity_type,
-        current_user,
-        db,
-    )
-
-
-@router.get(
-    "/travel-plans/{travel_plan_id}/itineraries/",
+    "/",
     response_model=List[ItineraryResponse],
     summary="获取行程列表",
-    operation_id="itineraries_by_plan",
+    operation_id="itineraries_list",
 )
-async def get_itineraries_by_plan(
-    travel_plan_id: UUID,
+async def list_itineraries(
     skip: int = Query(0, ge=0, description="跳过的记录数"),
     limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
+    travel_plan_id: UUID = Query(..., description="旅行计划ID"),
     day_number: Optional[int] = Query(None, description="筛选特定天数"),
     activity_type: Optional[str] = Query(None, description="活动类型"),
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
 ):
-    """获取指定旅行计划的行程列表"""
+    """获取行程列表，可选择性筛选特定旅行计划"""
+
+    # 构建基础查询，通过 JOIN 确保只返回用户拥有的旅行计划的行程
+    query = (
+        select(Itinerary)
+        .join(TravelPlan)
+        .where(TravelPlan.owner_id == current_user.id)
+    )
+
     # 验证旅行计划存在且属于当前用户
     result = await db.execute(
         select(TravelPlan).where(
@@ -117,7 +98,7 @@ async def get_itineraries_by_plan(
             status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在"
         )
 
-    query = select(Itinerary).where(Itinerary.travel_plan_id == travel_plan_id)
+    query = query.where(Itinerary.travel_plan_id == travel_plan_id)
 
     if day_number is not None:
         query = query.where(Itinerary.day_number == day_number)

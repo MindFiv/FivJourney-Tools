@@ -238,10 +238,10 @@ curl -X GET "http://localhost:8000/api/v1/travel-plans/" \
 
 ```bash
 # 构建镜像
-docker build -t travel-tracker .
+docker build -t fivjourney-tools .
 
 # 运行容器
-docker run -p 8000:8000 travel-tracker
+docker run -p 8000:8000 fivjourney-tools
 ```
 
 或使用 docker-compose：

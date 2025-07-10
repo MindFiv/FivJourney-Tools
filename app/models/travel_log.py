@@ -29,13 +29,10 @@ class TravelLog(Base):
     mood = Column(String(50))  # 心情
     images = Column(JSON)  # 图片列表，JSON格式
     tags = Column(String(500))  # 标签，逗号分隔
-    is_public = Column(
-        String(10), default="private"
-    )  # 是否公开：public/private/friends
 
     # 外键关联
     author_id = Column(GUID(), ForeignKey("users.id"), nullable=False)  # type: ignore[var-annotated]
-    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"))  # type: ignore[var-annotated]
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"), nullable=False)  # type: ignore[var-annotated]
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())

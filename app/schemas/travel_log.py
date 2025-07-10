@@ -16,7 +16,6 @@ class TravelLogBase(BaseModel):
     weather: Optional[str] = None
     mood: Optional[str] = None
     tags: Optional[str] = None
-    is_public: str = "private"
 
     @field_validator("title")
     @classmethod
@@ -34,16 +33,9 @@ class TravelLogBase(BaseModel):
             raise ValueError("内容不能为空")
         return v.strip()
 
-    @field_validator("is_public")
-    @classmethod
-    def validate_privacy(cls, v):
-        if v not in ["public", "private", "friends"]:
-            raise ValueError("隐私级别必须是 public, private 或 friends")
-        return v
-
 
 class TravelLogCreate(TravelLogBase):
-    travel_plan_id: Optional[UUID] = None
+    travel_plan_id: UUID
     images: Optional[List[str]] = None
 
 
@@ -58,7 +50,6 @@ class TravelLogUpdate(BaseModel):
     mood: Optional[str] = None
     images: Optional[List[str]] = None
     tags: Optional[str] = None
-    is_public: Optional[str] = None
 
     @field_validator("title")
     @classmethod
@@ -76,19 +67,12 @@ class TravelLogUpdate(BaseModel):
             raise ValueError("内容不能为空")
         return v.strip() if v else v
 
-    @field_validator("is_public")
-    @classmethod
-    def validate_privacy(cls, v):
-        if v is not None and v not in ["public", "private", "friends"]:
-            raise ValueError("隐私级别必须是 public, private 或 friends")
-        return v
-
 
 class TravelLogResponse(TravelLogBase):
     id: UUID
     images: Optional[List[str]] = None
     author_id: UUID
-    travel_plan_id: Optional[UUID] = None
+    travel_plan_id: UUID
     created_at: datetime
     updated_at: datetime
 

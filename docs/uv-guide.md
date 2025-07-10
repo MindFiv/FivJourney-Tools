@@ -88,7 +88,7 @@ uv run uvicorn main:app --reload
 uv run pytest
 
 # 运行项目脚本（在 pyproject.toml 中定义）
-uv run travel-tracker
+uv run fivjourney-tools
 ```
 
 ## 项目配置
@@ -99,7 +99,7 @@ uv run travel-tracker
 
 ```toml
 [project]
-name = "travel-tracker"
+name = "fivjourney-tools"
 dependencies = [
     "fastapi==0.104.1",
     "uvicorn==0.24.0",

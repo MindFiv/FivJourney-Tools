@@ -143,7 +143,7 @@ class TestItineraryQuery:
         await test_db.refresh(itinerary)
         return itinerary
 
-    def test_get_itineraries_by_plan_success(
+    def test_list_itineraries_success(
         self,
         client: TestClient,
         auth_headers: dict,
@@ -152,7 +152,7 @@ class TestItineraryQuery:
     ):
         """测试获取旅行计划的行程列表成功"""
         response = client.get(
-            f"/api/v1/itineraries/travel-plan/{test_travel_plan.id}",
+            f"/api/v1/itineraries/?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
 
@@ -165,17 +165,17 @@ class TestItineraryQuery:
         itinerary_ids = [itinerary["id"] for itinerary in data]
         assert str(test_itinerary.id) in itinerary_ids
 
-    def test_get_itineraries_by_plan_unauthorized(
+    def test_list_itineraries_unauthorized(
         self, client: TestClient, test_travel_plan: TravelPlan
     ):
         """测试未认证获取行程列表"""
         response = client.get(
-            f"/api/v1/itineraries/travel-plan/{test_travel_plan.id}"
+            f"/api/v1/itineraries/?travel_plan_id={test_travel_plan.id}"
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
 
-    def test_get_itineraries_by_invalid_plan(
+    def test_list_itineraries_invalid_plan(
         self, client: TestClient, auth_headers: dict
     ):
         """测试获取不存在旅行计划的行程列表"""
@@ -183,11 +183,67 @@ class TestItineraryQuery:
 
         fake_uuid = str(uuid.uuid4())
         response = client.get(
-            f"/api/v1/itineraries/travel-plan/{fake_uuid}",
+            f"/api/v1/itineraries/?travel_plan_id={fake_uuid}",
             headers=auth_headers,
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_list_all_itineraries_without_plan_id(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_travel_plan: TravelPlan,
+        test_itinerary: Itinerary,
+    ):
+        """测试不指定旅行计划ID时应该返回参数验证错误"""
+        response = client.get(
+            "/api/v1/itineraries/",
+            headers=auth_headers,
+        )
+
+        # 由于travel_plan_id是必需参数，不提供时应该返回422错误
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        data = response.json()
+        assert "detail" in data
+        # 验证错误信息中包含travel_plan_id相关的错误
+        assert any(
+            "travel_plan_id" in str(error).lower() for error in data["detail"]
+        )
+
+    def test_list_itineraries_with_pagination_no_plan_id(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_travel_plan: TravelPlan,
+    ):
+        """测试不指定旅行计划ID时的分页参数验证"""
+        # 测试分页参数但不提供travel_plan_id - 应该返回参数验证错误
+        response = client.get(
+            "/api/v1/itineraries/?limit=3",
+            headers=auth_headers,
+        )
+        # 由于travel_plan_id是必需参数，不提供时应该返回422错误
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        data = response.json()
+        assert "detail" in data
+        # 验证错误信息中包含travel_plan_id相关的错误
+        assert any(
+            "travel_plan_id" in str(error).lower() for error in data["detail"]
+        )
+
+        # 测试带skip和limit参数但不提供travel_plan_id - 应该返回参数验证错误
+        response = client.get(
+            "/api/v1/itineraries/?skip=2&limit=3",
+            headers=auth_headers,
+        )
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+        data = response.json()
+        assert "detail" in data
+        # 验证错误信息中包含travel_plan_id相关的错误
+        assert any(
+            "travel_plan_id" in str(error).lower() for error in data["detail"]
+        )
 
     def test_get_itinerary_by_id_success(
         self, client: TestClient, auth_headers: dict, test_itinerary: Itinerary
@@ -599,7 +655,7 @@ class TestItineraryPermissions:
     ):
         """测试获取其他用户旅行计划的行程（应该失败）"""
         response = client.get(
-            f"/api/v1/itineraries/travel-plan/{other_user_travel_plan.id}",
+            f"/api/v1/itineraries/?travel_plan_id={other_user_travel_plan.id}",
             headers=auth_headers,
         )
 
@@ -635,7 +691,7 @@ class TestItineraryIntegration:
 
         # 3. 在旅行计划的行程列表中验证存在
         list_response = client.get(
-            f"/api/v1/itineraries/travel-plan/{test_travel_plan.id}",
+            f"/api/v1/itineraries/?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
         assert list_response.status_code == status.HTTP_200_OK
@@ -720,7 +776,7 @@ class TestItineraryIntegration:
 
         # 获取行程列表并验证排序
         list_response = client.get(
-            f"/api/v1/itineraries/travel-plan/{test_travel_plan.id}",
+            f"/api/v1/itineraries/?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
         assert list_response.status_code == status.HTTP_200_OK

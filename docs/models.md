@@ -326,68 +326,58 @@ class PrivacyLevel(str, Enum):
 
 class TravelLog(Base):
     __tablename__ = "travel_logs"
-    
+
     # 基本信息
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(GUID(), primary_key=True, default=uuid.uuid4, index=True)
     title = Column(String(200), nullable=False)
     content = Column(Text, nullable=False)
-    
+    log_date = Column(DateTime, nullable=False)
+
     # 地理和时间信息
     location = Column(String(200))
-    latitude = Column(Float)
-    longitude = Column(Float)
-    log_date = Column(Date, nullable=False, index=True)
-    
+    latitude = Column(Numeric(10, 8))  # 纬度
+    longitude = Column(Numeric(11, 8))  # 经度
+
     # 多媒体内容
-    images = Column(JSON)  # 存储图片URL列表
+    images = Column(JSON)  # 存储图片URL列表，JSON格式
     weather = Column(String(100))  # 天气情况
-    temperature = Column(Float)    # 温度
-    
+
     # 情感记录
     mood = Column(String(50))      # 心情
-    rating = Column(Integer)       # 评分 1-5
-    
-    # 隐私设置
-    privacy_level = Column(Enum(PrivacyLevel), default=PrivacyLevel.PRIVATE, index=True)
-    
-    # 社交功能
-    likes_count = Column(Integer, default=0)
-    views_count = Column(Integer, default=0)
-    
+    tags = Column(String(500))     # 标签，逗号分隔
+
     # 外键
-    travel_plan_id = Column(Integer, ForeignKey("travel_plans.id"), nullable=False, index=True)
-    itinerary_id = Column(Integer, ForeignKey("itineraries.id"), nullable=True, index=True)
-    
+    author_id = Column(GUID(), ForeignKey("users.id"), nullable=False)
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"), nullable=False)
+
     # 时间戳
-    created_at = Column(DateTime(timezone=True), server_default=func.now())
-    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
-    
+    created_at = Column(DateTime(timezone=True), default=func.now())
+    updated_at = Column(DateTime(timezone=True), default=func.now(), onupdate=func.now())
+
     # 关系
+    author = relationship("User", back_populates="travel_logs")
     travel_plan = relationship("TravelPlan", back_populates="travel_logs")
-    itinerary = relationship("Itinerary")
 ```
 
 #### 字段说明
 
 | 字段 | 类型 | 说明 | 约束 |
 |------|------|------|------|
-| `id` | Integer | 主键ID | PK, 自增 |
+| `id` | GUID | 主键ID | PK, UUID |
 | `title` | String(200) | 日志标题 | 非空 |
 | `content` | Text | 日志内容 | 非空 |
+| `log_date` | DateTime | 日志日期时间 | 非空 |
 | `location` | String(200) | 地点 | 可空 |
-| `latitude` | Float | 纬度 | 可空 |
-| `longitude` | Float | 经度 | 可空 |
-| `log_date` | Date | 日志日期 | 非空, 索引 |
+| `latitude` | Numeric(10,8) | 纬度 | 可空 |
+| `longitude` | Numeric(11,8) | 经度 | 可空 |
 | `images` | JSON | 图片列表 | 可空 |
 | `weather` | String(100) | 天气 | 可空 |
-| `temperature` | Float | 温度 | 可空 |
 | `mood` | String(50) | 心情 | 可空 |
-| `rating` | Integer | 评分(1-5) | 可空 |
-| `privacy_level` | Enum | 隐私级别 | 索引, 默认private |
-| `likes_count` | Integer | 点赞数 | 默认0 |
-| `views_count` | Integer | 浏览数 | 默认0 |
-| `travel_plan_id` | Integer | 旅行计划ID | FK, 非空, 索引 |
-| `itinerary_id` | Integer | 行程ID | FK, 可空, 索引 |
+| `tags` | String(500) | 标签(逗号分隔) | 可空 |
+| `author_id` | GUID | 作者用户ID | FK, 非空 |
+| `travel_plan_id` | GUID | 旅行计划ID | FK, 非空 |
+| `created_at` | DateTime | 创建时间 | 自动生成 |
+| `updated_at` | DateTime | 更新时间 | 自动更新 |
 
 ## 🔗 关系设计
 

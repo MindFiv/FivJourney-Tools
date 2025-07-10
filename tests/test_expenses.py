@@ -19,10 +19,15 @@ class TestExpenseCreation:
         sample_expense_data: dict,
     ):
         """测试创建费用记录成功"""
+        # 添加travel_plan_id到请求数据中
+        expense_data = {
+            **sample_expense_data,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -40,9 +45,13 @@ class TestExpenseCreation:
         sample_expense_data: dict,
     ):
         """测试未认证创建费用记录"""
+        expense_data = {
+            **sample_expense_data,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
-            json=sample_expense_data,
+            "/api/v1/expenses/",
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -69,9 +78,12 @@ class TestExpenseCreation:
         test_travel_plan: TravelPlan,
     ):
         """测试创建费用缺少必填字段"""
-        incomplete_data = {"description": "缺少金额和类别的费用"}
+        incomplete_data = {
+            "description": "缺少金额和类别的费用",
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
             json=incomplete_data,
         )
@@ -86,11 +98,15 @@ class TestExpenseCreation:
         sample_expense_data: dict,
     ):
         """测试创建负金额费用"""
-        sample_expense_data["amount"] = -100.00
+        expense_data = {
+            **sample_expense_data,
+            "amount": -100.00,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
@@ -103,11 +119,15 @@ class TestExpenseCreation:
         sample_expense_data: dict,
     ):
         """测试创建零金额费用"""
-        sample_expense_data["amount"] = 0.00
+        expense_data = {
+            **sample_expense_data,
+            "amount": 0.00,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         # 根据业务逻辑，可能允许或不允许零金额
@@ -139,11 +159,15 @@ class TestExpenseCreation:
         category: str,
     ):
         """测试有效的费用类别"""
-        sample_expense_data["category"] = category
+        expense_data = {
+            **sample_expense_data,
+            "category": category,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_200_OK
@@ -153,7 +177,7 @@ class TestExpenseCreation:
 class TestExpenseQuery:
     """费用查询测试"""
 
-    def test_get_expenses_by_travel_plan(
+    def test_list_expenses_by_travel_plan(
         self,
         client: TestClient,
         auth_headers: dict,
@@ -162,7 +186,7 @@ class TestExpenseQuery:
     ):
         """测试获取旅行计划的费用列表"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
 
@@ -203,12 +227,12 @@ class TestExpenseQuery:
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
 
-    def test_get_expenses_unauthorized(
+    def test_list_expenses_unauthorized(
         self, client: TestClient, test_travel_plan: TravelPlan
     ):
         """测试未认证获取费用列表"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/"
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}"
         )
 
         assert response.status_code == status.HTTP_401_UNAUTHORIZED
@@ -216,8 +240,11 @@ class TestExpenseQuery:
     def test_get_user_expenses(
         self, client: TestClient, auth_headers: dict, test_expense: Expense
     ):
-        """测试获取用户的所有费用记录"""
-        response = client.get("/api/v1/expenses/", headers=auth_headers)
+        """测试获取用户的费用记录（需要提供travel_plan_id）"""
+        response = client.get(
+            f"/api/v1/expenses/?travel_plan_id={test_expense.travel_plan_id}",
+            headers=auth_headers,
+        )
 
         assert response.status_code == status.HTTP_200_OK
         data = response.json()
@@ -226,6 +253,14 @@ class TestExpenseQuery:
         if len(data) > 0:  # 如果有费用记录
             expense_ids = [expense["id"] for expense in data]
             assert str(test_expense.id) in expense_ids
+
+    def test_get_user_expenses_missing_travel_plan_id(
+        self, client: TestClient, auth_headers: dict
+    ):
+        """测试获取费用记录时缺少travel_plan_id参数"""
+        response = client.get("/api/v1/expenses/", headers=auth_headers)
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 class TestExpenseUpdate:
@@ -362,7 +397,7 @@ class TestExpenseFiltering:
     ):
         """测试按类别过滤费用"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/?category=transportation",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}&category=transportation",
             headers=auth_headers,
         )
 
@@ -384,8 +419,8 @@ class TestExpenseFiltering:
         end_date = date.today().isoformat()
 
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/"
-            f"?start_date={start_date}&end_date={end_date}",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}"
+            f"&start_date={start_date}&end_date={end_date}",
             headers=auth_headers,
         )
 
@@ -399,7 +434,7 @@ class TestExpenseFiltering:
     ):
         """测试按支付方式过滤费用"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/?payment_method=信用卡",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}&payment_method=信用卡",
             headers=auth_headers,
         )
 
@@ -417,7 +452,7 @@ class TestExpenseFiltering:
     ):
         """测试按金额排序费用"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/?sort_by=amount&order=desc",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}&sort_by=amount&order=desc",
             headers=auth_headers,
         )
 
@@ -437,7 +472,7 @@ class TestExpenseFiltering:
     ):
         """测试按描述搜索费用"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/?search=测试",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}&search=测试",
             headers=auth_headers,
         )
 
@@ -461,7 +496,7 @@ class TestExpenseStatistics:
     ):
         """测试获取费用统计"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/statistics",
+            f"/api/v1/expenses/statistics?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
 
@@ -481,7 +516,7 @@ class TestExpenseStatistics:
     ):
         """测试获取类别费用分解"""
         response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/statistics",
+            f"/api/v1/expenses/statistics?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
 
@@ -496,6 +531,36 @@ class TestExpenseStatistics:
             for category, stats in breakdown.items():
                 assert "amount" in stats
                 assert "percentage" in stats
+
+    def test_get_expense_statistics_with_travel_plan_id(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        test_travel_plan: TravelPlan,
+    ):
+        """测试通过直接API获取费用统计（需要travel_plan_id）"""
+        response = client.get(
+            f"/api/v1/expenses/statistics?travel_plan_id={test_travel_plan.id}",
+            headers=auth_headers,
+        )
+
+        assert response.status_code == status.HTTP_200_OK
+        data = response.json()
+
+        # 验证统计数据结构
+        expected_fields = ["total_amount", "by_category"]
+        for field in expected_fields:
+            assert field in data
+
+    def test_get_expense_statistics_missing_travel_plan_id(
+        self, client: TestClient, auth_headers: dict
+    ):
+        """测试获取费用统计时缺少travel_plan_id参数"""
+        response = client.get(
+            "/api/v1/expenses/statistics", headers=auth_headers
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
 
 
 class TestExpenseValidation:
@@ -518,11 +583,15 @@ class TestExpenseValidation:
         invalid_category: str,
     ):
         """测试无效的费用类别"""
-        sample_expense_data["category"] = invalid_category
+        expense_data = {
+            **sample_expense_data,
+            "category": invalid_category,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         # 根据验证规则，可能返回400或422
@@ -541,13 +610,15 @@ class TestExpenseValidation:
         """测试未来的费用日期"""
         from datetime import timedelta
 
-        sample_expense_data["expense_date"] = (
-            datetime.now() + timedelta(days=30)
-        ).isoformat()
+        expense_data = {
+            **sample_expense_data,
+            "expense_date": (datetime.now() + timedelta(days=30)).isoformat(),
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         # 根据业务逻辑，可能允许或不允许未来日期
@@ -564,11 +635,15 @@ class TestExpenseValidation:
         sample_expense_data: dict,
     ):
         """测试非常大的金额"""
-        sample_expense_data["amount"] = 999999999.99
+        expense_data = {
+            **sample_expense_data,
+            "amount": 999999999.99,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
 
         # 根据数据库约束和业务规则
@@ -590,10 +665,14 @@ class TestExpenseIntegration:
     ):
         """测试费用记录完整生命周期"""
         # 1. 创建费用记录
+        expense_data = {
+            **sample_expense_data,
+            "travel_plan_id": str(test_travel_plan.id),
+        }
         create_response = client.post(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
         )
         assert create_response.status_code == status.HTTP_200_OK
         expense_id = create_response.json()["id"]
@@ -625,7 +704,7 @@ class TestExpenseIntegration:
 
         # 5. 在旅行计划费用列表中验证存在
         list_response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/",
+            f"/api/v1/expenses/?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
         assert list_response.status_code == status.HTTP_200_OK
@@ -634,7 +713,7 @@ class TestExpenseIntegration:
 
         # 6. 获取费用统计
         stats_response = client.get(
-            f"/api/v1/travel-plans/{test_travel_plan.id}/expenses/statistics",
+            f"/api/v1/expenses/statistics?travel_plan_id={test_travel_plan.id}",
             headers=auth_headers,
         )
         assert stats_response.status_code == status.HTTP_200_OK
