@@ -32,7 +32,7 @@ class Expense(Base):
 
     # 外键关联
     user_id = Column(GUID(), ForeignKey("users.id"), nullable=False)  # type: ignore[var-annotated]
-    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"))  # type: ignore[var-annotated]
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"), nullable=False)  # type: ignore[var-annotated]
 
     # 时间戳
     created_at = Column(DateTime(timezone=True), default=func.now())

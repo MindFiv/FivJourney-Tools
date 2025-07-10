@@ -11,6 +11,7 @@ from app.core.database import get_db
 from app.core.security import get_current_active_user
 from app.models.enums import ExpenseCategory
 from app.models.expense import Expense
+from app.models.travel_plan import TravelPlan
 from app.models.user import User
 from app.schemas.expense import ExpenseCreate, ExpenseResponse, ExpenseUpdate
 
@@ -29,6 +30,21 @@ async def create_expense(
     db: AsyncSession = Depends(get_db),
 ):
     """创建新的费用记录"""
+    # 验证旅行计划存在且属于当前用户
+    result = await db.execute(
+        select(TravelPlan).where(
+            and_(
+                TravelPlan.id == expense_data.travel_plan_id,
+                TravelPlan.owner_id == current_user.id,
+            )
+        )
+    )
+    travel_plan = result.scalar_one_or_none()
+    if not travel_plan:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在"
+        )
+
     db_expense = Expense(**expense_data.model_dump(), user_id=current_user.id)
 
     db.add(db_expense)

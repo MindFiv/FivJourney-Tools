@@ -34,7 +34,7 @@ class ExpenseBase(BaseModel):
 
 
 class ExpenseCreate(ExpenseBase):
-    travel_plan_id: Optional[UUID] = None
+    travel_plan_id: UUID
 
 
 class ExpenseUpdate(BaseModel):
@@ -67,7 +67,7 @@ class ExpenseResponse(ExpenseBase):
     id: UUID
     receipt_image: Optional[str] = None
     user_id: UUID
-    travel_plan_id: Optional[UUID] = None
+    travel_plan_id: UUID
     created_at: datetime
     updated_at: datetime
 

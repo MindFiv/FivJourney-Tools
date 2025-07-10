@@ -216,27 +216,6 @@ class TestTravelLogQuery:
         for log in data:
             assert log["travel_plan_id"] == str(test_travel_plan.id)
 
-    def test_get_my_travel_logs(
-        self,
-        client: TestClient,
-        auth_headers: dict,
-        test_travel_log: TravelLog,
-        test_travel_plan: TravelPlan,
-    ):
-        """测试获取我的旅行日志"""
-        response = client.get(
-            f"/api/v1/travel-logs/my?travel_plan_id={test_travel_plan.id}",
-            headers=auth_headers,
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert isinstance(data, list)
-
-        # 应该包含当前用户的指定旅行计划的日志
-        log_ids = [log["id"] for log in data]
-        assert str(test_travel_log.id) in log_ids
-
     def test_list_travel_logs_missing_travel_plan_id(
         self, client: TestClient, auth_headers: dict
     ):
@@ -254,28 +233,6 @@ class TestTravelLogQuery:
         invalid_id = str(uuid.uuid4())
         response = client.get(
             f"/api/v1/travel-logs/?travel_plan_id={invalid_id}",
-            headers=auth_headers,
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_get_my_travel_logs_missing_travel_plan_id(
-        self, client: TestClient, auth_headers: dict
-    ):
-        """测试获取我的旅行日志缺少travel_plan_id参数"""
-        response = client.get("/api/v1/travel-logs/my", headers=auth_headers)
-
-        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
-
-    def test_get_my_travel_logs_invalid_travel_plan_id(
-        self, client: TestClient, auth_headers: dict
-    ):
-        """测试使用无效的travel_plan_id获取我的旅行日志"""
-        import uuid
-
-        invalid_id = str(uuid.uuid4())
-        response = client.get(
-            f"/api/v1/travel-logs/my?travel_plan_id={invalid_id}",
             headers=auth_headers,
         )
 
@@ -750,16 +707,7 @@ class TestTravelLogIntegration:
         log_ids = [log["id"] for log in list_response.json()]
         assert log_id in log_ids
 
-        # 4. 在我的日志列表中验证存在
-        my_logs_response = client.get(
-            f"/api/v1/travel-logs/my?travel_plan_id={test_travel_plan.id}",
-            headers=auth_headers,
-        )
-        assert my_logs_response.status_code == status.HTTP_200_OK
-        my_log_ids = [log["id"] for log in my_logs_response.json()]
-        assert log_id in my_log_ids
-
-        # 5. 更新日志
+        # 4. 更新日志
         update_data = {
             "title": "更新后的标题",
             "content": "更新后的内容",

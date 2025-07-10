@@ -1,8 +1,5 @@
 # mypy: disable-error-code="arg-type"
-from uuid import UUID
-
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import select
+from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.database import get_db
@@ -19,7 +16,7 @@ router = APIRouter()
     summary="获取当前用户信息",
     operation_id="users_me_get",
 )
-async def get_current_user_info(
+async def get_me(
     current_user: User = Depends(get_current_active_user),
 ):
     """获取当前用户信息"""
@@ -32,7 +29,7 @@ async def get_current_user_info(
     summary="更新当前用户信息",
     operation_id="users_me_put",
 )
-async def update_current_user(
+async def update_me(
     user_update: UserUpdate,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db),
@@ -63,26 +60,3 @@ async def update_current_user(
     await db.refresh(current_user)
 
     return current_user
-
-
-@router.get(
-    "/{user_id}",
-    response_model=UserResponse,
-    summary="获取用户信息",
-    operation_id="users_get",
-)
-async def get_user(
-    user_id: UUID,
-    db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(get_current_active_user),
-):
-    """获取指定用户信息"""
-    result = await db.execute(select(User).where(User.id == user_id))
-    user = result.scalar_one_or_none()
-
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="用户不存在"
-        )
-
-    return user

@@ -282,8 +282,8 @@ class Expense(Base):
     receipt_url = Column(String(500))    # 发票URL
     
     # 外键
-    travel_plan_id = Column(Integer, ForeignKey("travel_plans.id"), nullable=False, index=True)
-    itinerary_id = Column(Integer, ForeignKey("itineraries.id"), nullable=True, index=True)
+    travel_plan_id = Column(GUID(), ForeignKey("travel_plans.id"), nullable=False, index=True)
+    itinerary_id = Column(GUID(), ForeignKey("itineraries.id"), nullable=True, index=True)
     
     # 时间戳
     created_at = Column(DateTime(timezone=True), server_default=func.now())
@@ -310,7 +310,7 @@ class Expense(Base):
 | `location` | String(200) | 消费地点 | 可空 |
 | `payment_method` | String(50) | 支付方式 | 可空 |
 | `receipt_url` | String(500) | 发票URL | 可空 |
-| `travel_plan_id` | Integer | 旅行计划ID | FK, 非空, 索引 |
+| `travel_plan_id` | GUID | 旅行计划ID | FK, 非空, 索引 |
 | `itinerary_id` | Integer | 行程ID | FK, 可空, 索引 |
 
 ### 5. TravelLog (旅行日志模型)

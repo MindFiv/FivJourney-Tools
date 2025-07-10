@@ -245,7 +245,7 @@ async def get_current_user(
 
 # 在端点中使用
 @router.get("/me")
-async def get_current_user_info(
+async def get_self(
     current_user: User = Depends(get_current_active_user)
 ):
     return current_user

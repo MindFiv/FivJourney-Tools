@@ -156,45 +156,6 @@ class TestUserValidation:
         ]
 
 
-class TestUserQueries:
-    """用户查询测试"""
-
-    def test_get_user_by_id_success(
-        self, client: TestClient, auth_headers: dict, test_user: User
-    ):
-        """测试通过ID获取用户信息成功"""
-        response = client.get(
-            f"/api/v1/users/{test_user.id}", headers=auth_headers
-        )
-
-        assert response.status_code == status.HTTP_200_OK
-        data = response.json()
-        assert data["id"] == str(test_user.id)
-        assert data["username"] == test_user.username
-        assert "hashed_password" not in data
-
-    def test_get_user_by_id_not_found(
-        self, client: TestClient, auth_headers: dict
-    ):
-        """测试获取不存在的用户"""
-        import uuid
-
-        fake_uuid = str(uuid.uuid4())
-        response = client.get(
-            f"/api/v1/users/{fake_uuid}", headers=auth_headers
-        )
-
-        assert response.status_code == status.HTTP_404_NOT_FOUND
-
-    def test_get_user_by_id_unauthorized(
-        self, client: TestClient, test_user: User
-    ):
-        """测试未认证获取用户信息"""
-        response = client.get(f"/api/v1/users/{test_user.id}")
-
-        assert response.status_code == status.HTTP_401_UNAUTHORIZED
-
-
 class TestUserSecurity:
     """用户安全性测试"""
 
@@ -238,7 +199,7 @@ class TestUserIntegration:
             "/api/v1/auth/register", json=sample_user_data
         )
         assert register_response.status_code == status.HTTP_200_OK
-        user_id = register_response.json()["id"]
+        # user_id = register_response.json()["id"]
 
         # 2. 登录用户
         login_data = {
@@ -269,14 +230,3 @@ class TestUserIntegration:
         updated_data = verify_response.json()
         assert updated_data["full_name"] == update_data["full_name"]
         assert updated_data["bio"] == update_data["bio"]
-
-        # 6. 通过ID获取用户（如果有此端点）
-        by_id_response = client.get(
-            f"/api/v1/users/{user_id}", headers=headers
-        )
-        if (
-            by_id_response.status_code != status.HTTP_404_NOT_FOUND
-        ):  # 如果端点存在
-            assert by_id_response.status_code == status.HTTP_200_OK
-            by_id_data = by_id_response.json()
-            assert by_id_data["id"] == user_id

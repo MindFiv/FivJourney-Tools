@@ -103,50 +103,6 @@ async def list_travel_logs(
 
 
 @router.get(
-    "/my",
-    response_model=List[TravelLogResponse],
-    summary="获取我的旅行日志",
-    operation_id="travel_logs_my",
-)
-async def get_my_travel_logs(
-    travel_plan_id: UUID = Query(..., description="旅行计划ID"),
-    skip: int = Query(0, ge=0, description="跳过的记录数"),
-    limit: int = Query(100, ge=1, le=100, description="返回的记录数"),
-    current_user: User = Depends(get_current_active_user),
-    db: AsyncSession = Depends(get_db),
-):
-    """获取指定旅行计划的日志"""
-    # 验证旅行计划存在且属于当前用户
-    result = await db.execute(
-        select(TravelPlan).where(
-            and_(
-                TravelPlan.id == travel_plan_id,
-                TravelPlan.owner_id == current_user.id,
-            )
-        )
-    )
-    travel_plan = result.scalar_one_or_none()
-    if not travel_plan:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="旅行计划不存在"
-        )
-
-    query = select(TravelLog).where(
-        and_(
-            TravelLog.author_id == current_user.id,
-            TravelLog.travel_plan_id == travel_plan_id,
-        )
-    )
-
-    query = query.order_by(desc(TravelLog.log_date)).offset(skip).limit(limit)
-
-    result = await db.execute(query)
-    logs = result.scalars().all()
-
-    return logs
-
-
-@router.get(
     "/{log_id}",
     response_model=TravelLogResponse,
     summary="获取旅行日志详情",

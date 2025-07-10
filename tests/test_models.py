@@ -360,6 +360,25 @@ class TestExpenseModel:
         assert expense.user_id == test_user.id
         assert expense.travel_plan_id == test_travel_plan.id
 
+    @pytest.mark.asyncio
+    async def test_expense_required_travel_plan_id(
+        self,
+        test_db: AsyncSession,
+        test_user: User,
+    ):
+        """测试费用记录必须有travel_plan_id"""
+        with pytest.raises((IntegrityError, TypeError)):
+            expense = Expense(
+                title="测试费用",
+                amount=Decimal("100.00"),
+                category=ExpenseCategory.FOOD,
+                expense_date=datetime.now(),
+                user_id=test_user.id,
+                # 缺少travel_plan_id
+            )
+            test_db.add(expense)
+            await test_db.commit()
+
 
 class TestItineraryModel:
     """行程模型测试"""

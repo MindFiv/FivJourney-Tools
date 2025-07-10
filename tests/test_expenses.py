@@ -63,10 +63,66 @@ class TestExpenseCreation:
         import uuid
 
         fake_uuid = str(uuid.uuid4())
+        expense_data = {
+            **sample_expense_data,
+            "travel_plan_id": fake_uuid,
+        }
         response = client.post(
-            f"/api/v1/travel-plans/{fake_uuid}/expenses/",
+            "/api/v1/expenses/",
             headers=auth_headers,
-            json=sample_expense_data,
+            json=expense_data,
+        )
+
+        assert response.status_code == status.HTTP_404_NOT_FOUND
+
+    def test_create_expense_travel_plan_not_owned_by_user(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        sample_expense_data: dict,
+        test_db,
+    ):
+        """测试为不属于当前用户的旅行计划创建费用"""
+        import asyncio
+        from datetime import date, timedelta
+
+        from app.models.travel_plan import TravelPlan
+        from app.models.user import User
+
+        async def create_other_user_plan():
+            # 创建另一个用户
+            other_user = User(
+                username="otheruser",
+                email="other@example.com",
+                hashed_password="hashedpassword",
+            )
+            test_db.add(other_user)
+            await test_db.commit()
+            await test_db.refresh(other_user)
+
+            # 创建属于其他用户的旅行计划
+            other_plan = TravelPlan(
+                title="其他用户的计划",
+                destination="其他目的地",
+                start_date=date.today(),
+                end_date=date.today() + timedelta(days=5),
+                owner_id=other_user.id,
+            )
+            test_db.add(other_plan)
+            await test_db.commit()
+            await test_db.refresh(other_plan)
+            return other_plan
+
+        other_plan = asyncio.run(create_other_user_plan())
+
+        expense_data = {
+            **sample_expense_data,
+            "travel_plan_id": str(other_plan.id),
+        }
+        response = client.post(
+            "/api/v1/expenses/",
+            headers=auth_headers,
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_404_NOT_FOUND
@@ -86,6 +142,26 @@ class TestExpenseCreation:
             "/api/v1/expenses/",
             headers=auth_headers,
             json=incomplete_data,
+        )
+
+        assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
+
+    def test_create_expense_missing_travel_plan_id(
+        self,
+        client: TestClient,
+        auth_headers: dict,
+        sample_expense_data: dict,
+    ):
+        """测试创建费用缺少travel_plan_id"""
+        # 不包含travel_plan_id的数据
+        expense_data = {**sample_expense_data}
+        # 确保没有travel_plan_id
+        expense_data.pop("travel_plan_id", None)
+
+        response = client.post(
+            "/api/v1/expenses/",
+            headers=auth_headers,
+            json=expense_data,
         )
 
         assert response.status_code == status.HTTP_422_UNPROCESSABLE_ENTITY
