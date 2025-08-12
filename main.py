@@ -5,9 +5,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi_mcp import FastApiMCP
 
-from app.api.v1.router import api_router
-from app.core.config import settings
-from app.core.database import create_tables
+from apps.api.v1.router import api_router
+from apps.core.config import settings
+from apps.core.database import create_tables
 
 
 @asynccontextmanager

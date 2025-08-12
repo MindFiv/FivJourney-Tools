@@ -65,33 +65,33 @@ dev:
 
 # 运行测试
 test:
-	uv run pytest tests/ -v
+	uv run pytest apps/tests/ -v
 
 # 测试覆盖率
 test-cov:
-	uv run pytest tests/ -v --cov=app --cov-report=html
+	uv run pytest apps/tests/ -v --cov=apps --cov-report=html
 
 # 格式化代码
 format:
 	@echo "🔧 正在格式化代码..."
-	uv run black app/ main.py tests/ --line-length 79
-	uv run isort app/ main.py tests/
+	uv run black apps/ main.py --line-length 79
+	uv run isort apps/ main.py
 	@echo "✅ 代码格式化完成"
 
 # 检查代码格式 (不修改文件)
 format-check:
 	@echo "🔍 检查代码格式..."
-	uv run black app/ main.py tests/ --check --line-length 79
-	uv run isort app/ main.py tests/ --check-only
+	uv run black apps/ main.py --check --line-length 79
+	uv run isort apps/ main.py --check-only
 	@echo "✅ 代码格式检查完成"
 
 # 代码检查
 lint:
 	@echo "🔍 正在进行代码检查..."
 	@echo "📋 运行 flake8..."
-	uv run flake8 app/ main.py tests/
+	uv run flake8 apps/ main.py
 	@echo "🔍 运行 mypy..."
-	uv run mypy app/ main.py tests/
+	uv run mypy apps/ main.py
 	@echo "✅ 代码检查完成"
 
 # 完整的代码质量检查 (格式化 + 检查)
@@ -112,9 +112,9 @@ check-strict:
 format-advanced:
 	@echo "🔧 正在进行高级代码清理..."
 	@echo "🗑️  删除未使用的导入..."
-	uv run autoflake --remove-all-unused-imports --recursive --in-place app/ main.py tests/
+	uv run autoflake --remove-all-unused-imports --recursive --in-place apps/ main.py
 	@echo "⬆️  升级Python语法..."
-	find app/ tests/ -name "*.py" -exec uv run pyupgrade --py310-plus {} \; || true
+	find apps/ -name "*.py" -exec uv run pyupgrade --py310-plus {} \; || true
 	uv run pyupgrade --py310-plus main.py || true
 	@echo "🔧 格式化代码..."
 	$(MAKE) format
@@ -124,7 +124,7 @@ format-advanced:
 security:
 	@echo "🔒 正在进行安全检查..."
 	@echo "🛡️  检查代码安全性..."
-	uv run bandit -r app/ main.py -f json -o bandit-report.json || uv run bandit -r app/ main.py
+	uv run bandit -r apps/ main.py -f json -o bandit-report.json || uv run bandit -r apps/ main.py
 	@echo "🔍 检查依赖安全性..."
 	uv run safety check || echo "⚠️  发现安全问题，请检查上述输出"
 	@echo "✅ 安全检查完成"

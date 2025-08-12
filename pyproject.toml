@@ -162,11 +162,11 @@ exclude_lines = [
 ]
 
 [tool.hatch.build.targets.wheel]
-packages = ["app"]
+packages = ["apps"]
 
 [tool.hatch.build]
 include = [
-    "app/*",
+    "apps/*",
     "main.py",
     "config.env",
     "requirements.txt",
